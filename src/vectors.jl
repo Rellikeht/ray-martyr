@@ -1,4 +1,3 @@
-module Vectors
 export AbstractVect, Vect, MutVect
 export length, normalize
 
@@ -40,6 +39,4 @@ function normalize(v::MutVect)
     v.x /= l
     v.y /= l
     v.z /= l
-end
-
 end

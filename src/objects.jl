@@ -1,4 +1,4 @@
-module Objects
+include("vectors.jl")
 
 abstract type AbstractObject end
 abstract type AbstractSolid<:AbstractObject end
@@ -10,6 +10,4 @@ end
 
 struct Sphere<:AbstractSolid
     radius::Float64
-end
-
 end
