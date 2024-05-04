@@ -2,3 +2,6 @@ name = "Objects"
 uuid = "62ecdadc-e19b-4eca-b0de-2efed354d683"
 authors = ["Rellikeht <michaelhemperek@gmail.com>"]
 version = "0.1.0"
+
+[deps]
+Vectors = "3cde98ac-47c7-4389-9f21-dc41dd2cbfe5"
