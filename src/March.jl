@@ -1,7 +1,5 @@
 module March
-include("lights.jl")
-using .Lights
-import .Lights: Objects, Vectors
+using Lights
 
 using GLMakie
 GLMakie.activate!()

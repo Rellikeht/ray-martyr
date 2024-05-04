@@ -1,6 +1,5 @@
 module Objects
-include("vectors.jl")
-using .Vectors
+using Vectors
 
 export AbstractObject, AbstractSolid, AbstractLightSource
 export Sphere, Cube, sdf
