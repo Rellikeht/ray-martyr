@@ -1,12 +1,11 @@
 module Vectors
 import Base: rand, zero, +, -, *, /
 export Vect
-export length, normalize, distance, rand
+export length, normalize, distance, reflect, rand
 export +, -, *, /
 
 const IntOrFloat = Union{Int,Float64}
 const Vect = NTuple{3,Float64}
-# const Vect = Tuple{Float64,Float64,Float64}
 
 function Vect(x::T, y::T, z::T) where {T<:IntOrFloat}
     Float64.((x, y, z))
@@ -21,9 +20,23 @@ end
 function +(v1::Vect, v2::Vect)::Vect
     v1 .+ v2
 end
+function +(v::Vect, n::T)::Vect where {T<:IntOrFloat}
+    v .+ n
+end
+function +(n::T, v::Vect)::Vect where {T<:IntOrFloat}
+    v + n
+end
+
 function -(v1::Vect, v2::Vect)::Vect
     v1 .- v2
 end
+function -(v::Vect, n::T)::Vect where {T<:IntOrFloat}
+    v .- n
+end
+function -(n::T, v::Vect)::Vect where {T<:IntOrFloat}
+    v - n
+end
+
 function *(v::Vect, n::T)::Vect where {T<:IntOrFloat}
     v .* n
 end
@@ -47,6 +60,11 @@ function normalize(v::Vect)::Vect
     v / length(v)
 end
 
+function reflect(norm::Vect, v::Vect)::Vect
+    # TODO
+    Vect()
+end
+
 function rand(::Type{Vect}, r::AbstractRange{Float64})
     (rand(r), rand(r), rand(r))
 end
@@ -62,6 +80,8 @@ let
     _ = length(pcv1)
     _ = distance(pcv1, pcv2)
     _ = normalize(pcv1)
+    _ = reflect(pcv1, pcv2)
+
     _ = rand(Vect, -1:0.1:1)
 end
 
