@@ -1,9 +1,0 @@
-name = "Lights"
-uuid = "546eee7c-2c3e-4cfe-8eb7-68318552c85b"
-authors = ["Rellikeht <michaelhemperek@gmail.com>"]
-version = "0.1.0"
-
-[deps]
-GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
-Objects = "62ecdadc-e19b-4eca-b0de-2efed354d683"
-Vectors = "3cde98ac-47c7-4389-9f21-dc41dd2cbfe5"

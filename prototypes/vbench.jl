@@ -4,23 +4,29 @@ include("vtuple.jl")
 include("vstruct.jl")
 import Base: rand
 using BenchmarkTools
+
+# function rand(::Vtype, n::Int)::Vector{Vtype}
+#     T::Type = Base.return_types(rand, (Vtype, Int))
+#     result::T = zeros(T, n)
+#     @simd for i in eachindex(result)
+#         result[i] = rand(Vtype)
+#     end
+#     return return
+# end
+
 const testing_frange::StepRangeLen{Float64,Float64,Float64,Int} = -10000:0.1:10000
 
-function randVec(size::Int, M::Module)
-    v::Vector{M.Vect} = zeros(M.Vect, size)
-    @simd for i in eachindex(v)
-        v[i] = M.rand(M.Vect, testing_frange)
-    end
-    v
-end
-
-function opBench(
-    v1::Vector{T},
-    v2::Vector{T},
-    M::Module,
-) where {T}
+function opBench(size::Int, M::Module)
+    v1::Vector{M.Vect} = zeros(M.Vect, size)
+    v2::Vector{M.Vect} = zeros(M.Vect, size)
     n1::Float64 = rand(testing_frange)
     n2::Int = rand(-10000:10000)
+
+    @simd for i in eachindex(v1)
+        v1[i] = M.rand(M.Vect, testing_frange)
+        v2[i] = M.rand(M.Vect, testing_frange)
+    end
+
     @simd for i in eachindex(v1)
         _ = (M.:+)(v1[i], v2[i])
         _ = (M.:*)(v1[i], n1)
@@ -33,20 +39,37 @@ function opBench(
     end
 end
 
-function lenBench(v::Vector{T}, M::Module) where {T}
-    for i in eachindex(v)
-        _ = M.length(v[i])
+opBench(4, Vtuple)
+opBench(4, Vstruct)
+
+function lenBench(size::Int, M::Module)
+    v1::Vector{M.Vect} = zeros(M.Vect, size)
+
+    @simd for i in eachindex(v1)
+        v1[i] = M.rand(M.Vect, testing_frange)
     end
-    @simd for i in eachindex(v)
-        _ = M.length(v[i])
+
+    for i in eachindex(v1)
+        _ = M.length(v1[i])
+    end
+
+    @simd for i in eachindex(v1)
+        _ = M.length(v1[i])
     end
 end
 
-function ndistBench(
-    v1::Vector{T},
-    v2::Vector{T},
-    M::Module,
-) where {T}
+lenBench(4, Vtuple)
+lenBench(4, Vstruct)
+
+function ndistBench(size::Int, M::Module)
+    v1::Vector{M.Vect} = zeros(M.Vect, size)
+    v2::Vector{M.Vect} = zeros(M.Vect, size)
+
+    @simd for i in eachindex(v1)
+        v1[i] = M.rand(M.Vect, testing_frange)
+        v2[i] = M.rand(M.Vect, testing_frange)
+    end
+
     @simd for i in eachindex(v1)
         _ = M.distance(v1[i], v2[i])
         _ = M.normalize(v1[i])
@@ -54,45 +77,15 @@ function ndistBench(
     end
 end
 
-let
-    ps1 = randVec(4, Vstruct)
-    ps2 = randVec(4, Vstruct)
-    pt1 = randVec(4, Vtuple)
-    pt2 = randVec(4, Vtuple)
+ndistBench(4, Vtuple)
+ndistBench(4, Vstruct)
 
-    opBench(ps1, ps2, Vstruct)
-    opBench(pt1, pt2, Vtuple)
-    lenBench(ps1, Vstruct)
-    lenBench(pt1, Vtuple)
-    ndistBench(ps1, ps2, Vstruct)
-    ndistBench(pt1, pt2, Vtuple)
-end
-
-const bsize = 4 * 10^5
-const secs = 30
-
-const stv1 = randVec(bsize, Vstruct)
-const stv2 = randVec(bsize, Vstruct)
-const tpv1 = randVec(bsize, Vtuple)
-const tpv2 = randVec(bsize, Vtuple)
-
-for i in 1:10
-    println()
-end
-
-@benchmark _ = randVec(bsize, Vstruct) seconds = secs
-@benchmark _ = randVec(bsize, Vtuple) seconds = secs
+const bsize = 4*10^5
+@benchmark opBench(bsize, Vtuple) seconds=30
+@benchmark opBench(bsize, Vstruct) seconds=30
 println()
-
-@benchmark opBench(stv1, stv2, Vstruct) seconds = secs
-@benchmark opBench(tpv1, tpv2, Vtuple) seconds = secs
+@benchmark ndistBench(bsize, Vtuple) seconds=30
+@benchmark ndistBench(bsize, Vstruct) seconds=30
 println()
-
-@benchmark lenBench(stv1, Vstruct) seconds = secs
-@benchmark lenBench(tpv1, Vtuple) seconds = secs
-println()
-
-@benchmark ndistBench(stv1, stv2, Vstruct) seconds = secs
-@benchmark ndistBench(tpv1, tpv2, Vtuple) seconds = secs
-println()
-
+@benchmark lenBench(bsize, Vtuple) seconds=30
+@benchmark lenBench(bsize, Vstruct) seconds=30
