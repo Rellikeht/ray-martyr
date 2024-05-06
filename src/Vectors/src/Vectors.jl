@@ -20,22 +20,32 @@ end
 function +(v1::Vect, v2::Vect)::Vect
     v1 .+ v2
 end
-function +(v::Vect, n::T)::Vect where {T<:IntOrFloat}
-    v .+ n
-end
-function +(n::T, v::Vect)::Vect where {T<:IntOrFloat}
-    v + n
-end
-
 function -(v1::Vect, v2::Vect)::Vect
     v1 .- v2
 end
+
+function +(v::Vect, n::T)::Vect where {T<:IntOrFloat}
+    result::Vect = v
+    # TODO add magnitude
+    return result
+end
 function -(v::Vect, n::T)::Vect where {T<:IntOrFloat}
-    v .- n
+    v + (-n)
 end
-function -(n::T, v::Vect)::Vect where {T<:IntOrFloat}
-    v - n
-end
+
+# function +(v::Vect, n::T)::Vect where {T<:IntOrFloat}
+#     v .+ n
+# end
+# function +(n::T, v::Vect)::Vect where {T<:IntOrFloat}
+#     v + n
+# end
+
+# function -(v::Vect, n::T)::Vect where {T<:IntOrFloat}
+#     v .- n
+# end
+# function -(n::T, v::Vect)::Vect where {T<:IntOrFloat}
+#     v - n
+# end
 
 function *(v::Vect, n::T)::Vect where {T<:IntOrFloat}
     v .* n
@@ -74,6 +84,8 @@ let
 
     _ = pcv1 + pcv2
     _ = pcv1 - pcv2
+    _ = pcv1 + 1
+    _ = pcv2 - 2
     _ = 2 * pcv2
     _ = pcv1 / 3
 
