@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.3"
+julia_version = "1.10.2"
 manifest_format = "2.0"
 project_hash = "b42b2fa9f4970c230259a9be9e1c88349142e8c2"
 
@@ -216,9 +216,9 @@ version = "0.3.0"
 
 [[deps.Compat]]
 deps = ["TOML", "UUIDs"]
-git-tree-sha1 = "c955881e3c981181362ae4088b35995446298b80"
+git-tree-sha1 = "b1c55339b7c6c350ee89f2c1604299660525b248"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "4.14.0"
+version = "4.15.0"
 weakdeps = ["Dates", "LinearAlgebra"]
 
     [deps.Compat.extensions]
@@ -227,7 +227,7 @@ weakdeps = ["Dates", "LinearAlgebra"]
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.1.1+0"
+version = "1.1.0+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -1494,9 +1494,9 @@ uuid = "731e570b-9d59-4bfa-96dc-6df516fadf69"
 version = "0.6.8"
 
 [[deps.TranscodingStreams]]
-git-tree-sha1 = "71509f04d045ec714c4748c785a59045c3736349"
+git-tree-sha1 = "5d54d076465da49d6746c647022f3b3674e64156"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.10.7"
+version = "0.10.8"
 weakdeps = ["Random", "Test"]
 
     [deps.TranscodingStreams.extensions]

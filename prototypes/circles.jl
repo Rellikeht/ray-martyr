@@ -1,4 +1,4 @@
-using GLMakie, Makie
+using GLMakie
 GLMakie.activate!()
 
 function circle!(
@@ -32,4 +32,5 @@ function main()::Scene
 
     scene
 end
+
 main()

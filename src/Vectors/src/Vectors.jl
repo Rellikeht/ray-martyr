@@ -1,7 +1,8 @@
 module Vectors
 import Base: rand, zero, +, -, *, /
 export Vect
-export length, normalize, distance, reflect, rand
+export length, normalize, distance, reflect
+export inside, rand
 export +, -, *, /
 
 const IntOrFloat = Union{Int,Float64}
@@ -11,7 +12,7 @@ function Vect(x::T, y::T, z::T) where {T<:IntOrFloat}
     Float64.((x, y, z))
 end
 function Vect()
-    (0, 0, 0)
+    Float64.((0, 0, 0))
 end
 function zero(::T)::Vect where {T<:Union{Vect,Type{Vect}}}
     Vect()
@@ -24,29 +25,6 @@ function -(v1::Vect, v2::Vect)::Vect
     v1 .- v2
 end
 
-function +(v::Vect, n::T)::Vect where {T<:IntOrFloat}
-    result::Vect = v
-    # TODO add magnitude
-    return result
-end
-function -(v::Vect, n::T)::Vect where {T<:IntOrFloat}
-    v + (-n)
-end
-
-# function +(v::Vect, n::T)::Vect where {T<:IntOrFloat}
-#     v .+ n
-# end
-# function +(n::T, v::Vect)::Vect where {T<:IntOrFloat}
-#     v + n
-# end
-
-# function -(v::Vect, n::T)::Vect where {T<:IntOrFloat}
-#     v .- n
-# end
-# function -(n::T, v::Vect)::Vect where {T<:IntOrFloat}
-#     v - n
-# end
-
 function *(v::Vect, n::T)::Vect where {T<:IntOrFloat}
     v .* n
 end
@@ -55,6 +33,11 @@ function *(n::T, v::Vect)::Vect where {T<:IntOrFloat}
 end
 function /(v::Vect, n::T)::Vect where {T<:IntOrFloat}
     v ./ n
+end
+
+# Dot product
+function *(v1::Vect, v2::Vect)::Float64
+    return sum(v1.*v2)
 end
 
 function sum(v::Vect)::Float64
@@ -70,9 +53,24 @@ function normalize(v::Vect)::Vect
     v / length(v)
 end
 
+function +(v::Vect, n::T)::Vect where {T<:IntOrFloat}
+    result::Vect = v
+    v+n*normalize(v)
+    return result
+end
+function -(v::Vect, n::T)::Vect where {T<:IntOrFloat}
+    v + (-n)
+end
+
+# https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
 function reflect(norm::Vect, v::Vect)::Vect
+    n::Float64 = length(norm)
+    return v - 2*v*norm*norm/n^2
+end
+
+function inside(a::Vect, b::Vect, v::Vect)::Bool
+    return false
     # TODO
-    Vect()
 end
 
 function rand(::Type{Vect}, r::AbstractRange{Float64})
@@ -87,6 +85,7 @@ let
     _ = pcv1 + 1
     _ = pcv2 - 2
     _ = 2 * pcv2
+    _ = pcv1 * pcv2
     _ = pcv1 / 3
 
     _ = length(pcv1)
@@ -94,6 +93,7 @@ let
     _ = normalize(pcv1)
     _ = reflect(pcv1, pcv2)
 
+    _ = inside(pcv1, pcv2, Vect())
     _ = rand(Vect, -1:0.1:1)
 end
 

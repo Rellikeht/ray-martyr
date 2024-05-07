@@ -1,8 +1,10 @@
 module Objects
+using Vectors: IntOrFloat
 using Vectors
 
 export AbstractObject, AbstractSolid, AbstractLightSource
 export Sphere, Cube, sdf
+export LightSource, Camera, Scene
 
 abstract type AbstractObject end
 abstract type AbstractSolid <: AbstractObject end
@@ -50,6 +52,40 @@ function sdf(cube::Cube, vect::Vect)::Float64
     return d
 end
 
+struct LightSource <: AbstractLightSource
+    position::Vect
+    intensity::Float64
+    LightSource(
+        position::Vect=Vect(),
+        intensity::Float64=0.0
+    ) = new(position, intensity)
+end
+
+struct Camera
+    position::Vect
+    Camera(position::Vect=Vect(-1, 0, 0)) = new(position)
+end
+
+const Bounds = Tuple{NTuple{3,IntOrFloat}, NTuple{3,IntOrFloat}}
+const DEFAULT_WORLD_BOUNDS = (
+    Vect(0, 1000, 1000),
+    Vect(2000, -1000, -1000)
+)
+
+struct Scene
+    camera::Camera
+    bounds::Bounds
+    lights::Vector{AbstractLightSource}
+    solids::Vector{AbstractSolid}
+    Scene(
+        camera::Camera=Camera(),
+        bounds::Bounds=DEFAULT_WORLD_BOUNDS,
+        lights::Vector{L}=[],
+        solids::Vector{S}=[],
+    ) where {L<:AbstractLightSource, S<:AbstractSolid} =
+        new(camera, bounds, lights, solids)
+end
+
 let
     ppoint = Vect(4, 2, 0)
     psolid = [
@@ -60,6 +96,9 @@ let
     for s in psolid
         _ = sdf(s, ppoint)
     end
+
+    pcam = Camera()
+    pscene = Scene(pcam, DEFAULT_WORLD_BOUNDS, [LightSource()], psolid)
 end
 
 end
