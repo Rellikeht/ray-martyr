@@ -9,6 +9,7 @@ end
 
 # const Color = NTuple{3, Int} 
 
+const DEFAULT_DISTANCE_LIMIT = 0.001
 const DEFAULT_REFLECTION_LIMIT = 1
 const BLACK = Color()
 
@@ -27,7 +28,18 @@ function march(
         return BLACK
     end
 
+    BOX_SIZE::Float64 = distance(
+        scene.bounds[1],
+        scene.bounds[2]
+    )
+    STARTING_POSITION::Vect = ray.position
+
     while !inside(scene.bounds..., ray.position)
+        d::Float64 = minDist(scene, ray.position)
+        if d < DEFAULT_DISTANCE_LIMIT
+            return distance(STARTING_POSITION, ray.position) / BOX_SIZE
+        end
+        ray.position += d
     end
 
     # hardcode maximum box size and go on
@@ -37,6 +49,8 @@ function march(
     # return black
     # if reflection
     # march(limit-1) to all light sources
+
+    return 0.0
 end
 
 end

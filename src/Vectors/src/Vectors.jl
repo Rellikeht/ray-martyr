@@ -37,7 +37,7 @@ end
 
 # Dot product
 function *(v1::Vect, v2::Vect)::Float64
-    return sum(v1.*v2)
+    return sum(v1 .* v2)
 end
 
 function sum(v::Vect)::Float64
@@ -55,7 +55,7 @@ end
 
 function +(v::Vect, n::T)::Vect where {T<:IntOrFloat}
     result::Vect = v
-    v+n*normalize(v)
+    v + n * normalize(v)
     return result
 end
 function -(v::Vect, n::T)::Vect where {T<:IntOrFloat}
@@ -64,13 +64,16 @@ end
 
 # https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
 function reflect(norm::Vect, v::Vect)::Vect
-    n::Float64 = length(norm)
-    return v - 2*v*norm*norm/n^2
+    v - 2 * v * norm * norm / length(norm)^2
 end
 
 function inside(a::Vect, b::Vect, v::Vect)::Bool
-    return false
-    # TODO
+    return if b < a
+        inside(b, a, v)
+    else
+        reduce(&, (v .> a) .&& (v .< b))
+        # return v > a && v < b
+    end
 end
 
 function rand(::Type{Vect}, r::AbstractRange{Float64})

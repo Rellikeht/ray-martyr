@@ -3,7 +3,7 @@ using Vectors: IntOrFloat
 using Vectors
 
 export AbstractObject, AbstractSolid, AbstractLightSource
-export Sphere, Cube, sdf
+export Sphere, Cube, sdf, minDist, closestElement
 export LightSource, Camera, Scene
 
 abstract type AbstractObject end
@@ -45,11 +45,12 @@ struct Cube <: AbstractSolid
 end
 
 function sdf(cube::Cube, vect::Vect)::Float64
-    d::Float64 = 0
-    @simd for i in eachindex(cube.verts)
-        d = min(d, distance(cube.verts[i], vect))
-    end
-    return d
+    # d::Float64 = 0
+    # @simd for i in eachindex(cube.verts)
+    #     d = min(d, distance(cube.verts[i], vect))
+    # end
+    # return d
+    reduce(min, distance.(cube.verts, (vect,)))
 end
 
 struct LightSource <: AbstractLightSource
@@ -66,7 +67,7 @@ struct Camera
     Camera(position::Vect=Vect(-1, 0, 0)) = new(position)
 end
 
-const Bounds = Tuple{NTuple{3,IntOrFloat}, NTuple{3,IntOrFloat}}
+const Bounds = Tuple{NTuple{3,IntOrFloat},NTuple{3,IntOrFloat}}
 const DEFAULT_WORLD_BOUNDS = (
     Vect(0, 1000, 1000),
     Vect(2000, -1000, -1000)
@@ -82,8 +83,16 @@ struct Scene
         bounds::Bounds=DEFAULT_WORLD_BOUNDS,
         lights::Vector{L}=[],
         solids::Vector{S}=[],
-    ) where {L<:AbstractLightSource, S<:AbstractSolid} =
+    ) where {L<:AbstractLightSource,S<:AbstractSolid} =
         new(camera, bounds, lights, solids)
+end
+
+function minDist(scene::Scene, pos::Vect)::Float64
+    reduce(min, sdf.(scene.solids, (pos,)))
+end
+
+function closestElement(scene::Scene, pos::Vect)::AbstractSolid
+    scene.solids[argmin(sdf.(scene.solids, (pos,)))]
 end
 
 let
@@ -99,6 +108,8 @@ let
 
     pcam = Camera()
     pscene = Scene(pcam, DEFAULT_WORLD_BOUNDS, [LightSource()], psolid)
+    _ = minDist(pscene, ppoint)
+    _ = closestElement(pscene, ppoint)
 end
 
 end
