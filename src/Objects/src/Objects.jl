@@ -4,7 +4,7 @@ using Vectors
 
 export AbstractObject, AbstractSolid, AbstractLightSource
 export Sphere, Cube, sdf, minDist, closestElement
-export LightSource, Camera, Scene
+export LightSource, Camera, Plane, Scene
 
 abstract type AbstractObject end
 abstract type AbstractSolid <: AbstractObject end
@@ -73,18 +73,30 @@ const DEFAULT_WORLD_BOUNDS = (
     Vect(2000, -1000, -1000)
 )
 
+struct Plane
+    top_right::Vect
+    down_left::Vect
+    Plane(
+        top_right::Vect=Vect(0, -1, -1),
+        down_left::Vect=Vect(0, 1, 1)
+    ) = new(top_right, down_left)
+end
+
 struct Scene
     camera::Camera
+    plane::Plane
     bounds::Bounds
     lights::Vector{AbstractLightSource}
     solids::Vector{AbstractSolid}
+
     Scene(
         camera::Camera=Camera(),
+        plane::Plane=Plane(),
         bounds::Bounds=DEFAULT_WORLD_BOUNDS,
         lights::Vector{L}=[],
         solids::Vector{S}=[],
     ) where {L<:AbstractLightSource,S<:AbstractSolid} =
-        new(camera, bounds, lights, solids)
+        new(camera, plane, bounds, lights, solids)
 end
 
 function minDist(scene::Scene, pos::Vect)::Float64
@@ -107,7 +119,15 @@ let
     end
 
     pcam = Camera()
-    pscene = Scene(pcam, DEFAULT_WORLD_BOUNDS, [LightSource()], psolid)
+    pplane = Plane()
+    pscene = Scene(
+        pcam,
+        pplane,
+        DEFAULT_WORLD_BOUNDS,
+        [LightSource()],
+        psolid
+    )
+
     _ = minDist(pscene, ppoint)
     _ = closestElement(pscene, ppoint)
 end

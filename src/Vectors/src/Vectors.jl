@@ -2,7 +2,7 @@ module Vectors
 import Base: rand, zero, +, -, *, /
 export Vect
 export length, normalize, distance, reflect
-export inside, rand
+export inside, between, rand
 export +, -, *, /
 
 const IntOrFloat = Union{Int,Float64}
@@ -75,6 +75,9 @@ function inside(a::Vect, b::Vect, v::Vect)::Bool
         # return v > a && v < b
     end
 end
+function between(a::Vect, b::Vect)::Vect
+    return b .- a
+end
 
 function rand(::Type{Vect}, r::AbstractRange{Float64})
     (rand(r), rand(r), rand(r))
@@ -96,6 +99,7 @@ let
     _ = normalize(pcv1)
     _ = reflect(pcv1, pcv2)
 
+    _ = between(pcv1, pcv2)
     _ = inside(pcv1, pcv2, Vect())
     _ = rand(Vect, -1:0.1:1)
 end
