@@ -4,17 +4,39 @@
 module March
 using Lights
 
+const FHD = (1920, 1080)
+const HD = (1280, 720)
+
 using CairoMakie
 CairoMakie.activate!()
-
-# using GLMakie
-# GLMakie.activate!()
 
 # GLMakie.activate!(float=true,)
 # GLMakie.activate!(fullscreen=true)
 
-const FHD = (1920, 1080)
-const HD = (1280, 720)
+# using GLMakie
+# GLMakie.activate!()
+
+# scene::Scene = Scene(
+#     # back,
+#     clear=true,
+#     # backgroundcolor=background,
+#     backgroundcolor=:black,
+#     # size=HD,
+# )
+# campixel!(scene)
+
+# function render(scene::Scene)
+#     scx::Int, scy::Int = size(scene)
+#     image!(scene, [(i+j)/(scx+scy) for i in 1:scx, j in 1:scy])
+#     return scene
+# end
+
+# function render()::Scene
+#     campixel!(scene)
+#     scx::Int, scy::Int = size(scene)
+#     image!(scene, [(i+j)/(scx+scy) for i in 1:scx, j in 1:scy])
+#     return scene
+# end
 
 # function initScene(
 #     # size::Tuple{Int, Int},
