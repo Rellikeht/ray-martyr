@@ -1,7 +1,7 @@
 module Lights
 using Objects, Vectors
-import Vectors: IntOrFloat
 
+const IntOrFloat = Union{Int,Float64}
 const Color = Float64
 function Color(value::T=0) where {T<:IntOrFloat}
     return Float64(value)
@@ -16,7 +16,7 @@ const BLACK = Color()
 mutable struct Ray
     position::Vect
     direction::Vect
-    # intensity::Float64
+    intensity::Float64
 end
 
 function march(
@@ -50,7 +50,7 @@ function march(
     # if reflection
     # march(limit-1) to all light sources
 
-    return BLACK
+    return 0.0
 end
 
 end
