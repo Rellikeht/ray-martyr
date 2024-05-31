@@ -1,8 +1,8 @@
 module Vectors
 import Base: rand, zero, +, -, *, /
-export Vect
+export Vect, IntOrFloat, Bounds
 export length, normalize, distance, reflect
-export inside, between, rand
+export inside, rand
 export +, -, *, /
 
 const IntOrFloat = Union{Int,Float64}
@@ -67,17 +67,40 @@ function reflect(norm::Vect, v::Vect)::Vect
     v - 2 * v * norm * norm / length(norm)^2
 end
 
-function inside(a::Vect, b::Vect, v::Vect)::Bool
-    return if b < a
-        inside(b, a, v)
-    else
-        reduce(&, (v .> a) .&& (v .< b))
-        # return v > a && v < b
+const Bounds = Tuple{NTuple{3,IntOrFloat},NTuple{3,IntOrFloat}}
+function Bounds(
+    xstart::IntOrFloat,
+    xend::IntOrFloat,
+    ystart::IntOrFloat,
+    yend::IntOrFloat,
+    zstart::IntOrFloat,
+    zend::IntOrFloat,
+)::Bounds
+    return ((xstart, ystart, zstart), (xend, yend, zend))
+end
+function Bounds(p1::Vect, p2::Vect)::Bounds
+    return (p1, p2)
+end
+
+function inside(b::Bounds, v::Vect)::Bool
+    for i in 1:3
+        if v[i] < min(b[1][i], b[2][i]) && v[i] > max(b[1][i], b[2][i])
+            return false
+        end
     end
+    return true
+
+    # return if b < a
+    #     inside(b, a, v)
+    # else
+    #     reduce(&, (v .> a) .&& (v .< b))
+    #     # return v > a && v < b
+    # end
 end
-function between(a::Vect, b::Vect)::Vect
-    return b .- a
-end
+
+# function between(a::Vect, b::Vect)::Vect
+#     return b .- a
+# end
 
 function rand(::Type{Vect}, r::AbstractRange{Float64})
     (rand(r), rand(r), rand(r))
@@ -99,8 +122,8 @@ let
     _ = normalize(pcv1)
     _ = reflect(pcv1, pcv2)
 
-    _ = between(pcv1, pcv2)
-    _ = inside(pcv1, pcv2, Vect())
+    # _ = between(pcv1, pcv2)
+    _ = inside((pcv1, pcv2), Vect())
     _ = rand(Vect, -1:0.1:1)
 end
 

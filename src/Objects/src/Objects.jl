@@ -1,10 +1,15 @@
 module Objects
-using Vectors: IntOrFloat
 using Vectors
 
 export AbstractObject, AbstractSolid, AbstractLightSource
 export Sphere, Cube, sdf, minDist, closestElement
 export LightSource, Camera, Plane, Scene
+export DEFAULT_WORLD_BOUNDS
+
+const DEFAULT_WORLD_BOUNDS = (
+    Vect(0, 100, 100),
+    Vect(200, -100, -100),
+)
 
 abstract type AbstractObject end
 abstract type AbstractSolid <: AbstractObject end
@@ -62,17 +67,6 @@ struct LightSource <: AbstractLightSource
     ) = new(position, intensity)
 end
 
-struct Camera
-    position::Vect
-    Camera(position::Vect=Vect(-1, 0, 0)) = new(position)
-end
-
-const Bounds = Tuple{NTuple{3,IntOrFloat},NTuple{3,IntOrFloat}}
-const DEFAULT_WORLD_BOUNDS = (
-    Vect(0, 1000, 1000),
-    Vect(2000, -1000, -1000)
-)
-
 struct Plane
     top_right::Vect
     down_left::Vect
@@ -82,21 +76,28 @@ struct Plane
     ) = new(top_right, down_left)
 end
 
+struct Camera
+    position::Vect
+    imagePlane::Plane
+    Camera(
+        position::Vect=Vect(-1, 0, 0),
+        plane::Plane=Plane(),
+    ) = new(position, plane)
+end
+
 struct Scene
     camera::Camera
-    plane::Plane
     bounds::Bounds
     lights::Vector{AbstractLightSource}
     solids::Vector{AbstractSolid}
 
     Scene(
         camera::Camera=Camera(),
-        plane::Plane=Plane(),
         bounds::Bounds=DEFAULT_WORLD_BOUNDS,
         lights::Vector{L}=[],
         solids::Vector{S}=[],
     ) where {L<:AbstractLightSource,S<:AbstractSolid} =
-        new(camera, plane, bounds, lights, solids)
+        new(camera, bounds, lights, solids)
 end
 
 function minDist(scene::Scene, pos::Vect)::Float64
@@ -110,7 +111,7 @@ end
 let
     ppoint = Vect(4, 2, 0)
     psolid = [
-        Sphere(Vect(1, 2, 3), 2.0)
+        Sphere(Vect(1, 2, 3), 2.0),
         Cube(Vect(4, 5, 6), 3.0)
     ]
 
@@ -119,10 +120,8 @@ let
     end
 
     pcam = Camera()
-    pplane = Plane()
     pscene = Scene(
         pcam,
-        pplane,
         DEFAULT_WORLD_BOUNDS,
         [LightSource()],
         psolid
