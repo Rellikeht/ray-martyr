@@ -13,7 +13,7 @@ export DEFAULT_WORLD_BOUNDS
 # )
 
 const DEFAULT_WORLD_BOUNDS = Bounds(
-    Vect(0, 10, 10),
+    Vect(-5, 10, 10),
     Vect(20, -10, -10),
 )
 
@@ -82,7 +82,10 @@ struct Camera
     imagePlane::Plane
     Camera(
         position::Vect=Vect(-1, 0, 0),
-        plane::Plane=Plane(),
+        plane::Plane=Plane(
+            Vect(0.0, -1.6, -0.9),
+            Vect(0.0, 1.6, 0.9),
+        ),
     ) = new(position, plane)
 end
 

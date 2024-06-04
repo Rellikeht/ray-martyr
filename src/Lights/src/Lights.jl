@@ -11,7 +11,7 @@ const Frange = StepRangeLen{Float64,Float64,Float64,Int}
 
 const DEFAULT_DISTANCE_LIMIT = 0.01
 const DEFAULT_REFLECTION_LIMIT = 1
-const BLACK = RGBf(0, 0, 0)
+const BLACK = RGBf(0.0, 0.0, 0.0)
 
 mutable struct Ray
     position::Vect
@@ -37,7 +37,7 @@ function march(
     while inside(scene.bounds, ray.position)
         d::Float64 = minDist(scene, ray.position)
         if d < DEFAULT_DISTANCE_LIMIT
-            return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 255)
+            return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 2)
         end
         ray.position += d * ray.direction
     end
@@ -55,8 +55,8 @@ function march(
     colors::Matrix{RGBf} = zeros(resolution[1], resolution[2])
     i::Int = 1
 
-    for y in Frange(ymin:(ymax-ymin)/(resolution[1]-1):ymax)
-        for z in Frange(zmin:(zmax-zmin)/(resolution[2]-1):zmax)
+    for z in Frange(zmin:(zmax-zmin)/(resolution[2]-1):zmax)
+        for y in Frange(ymin:(ymax-ymin)/(resolution[1]-1):ymax)
             p::Vect = Vect(scene.camera.imagePlane.top_right[1], y, z)
             colors[i] = march(
                 scene,

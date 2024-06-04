@@ -78,26 +78,42 @@ function Bounds(
     zstart::IntOrFloat,
     zend::IntOrFloat,
 )::Bounds
-    return ((xstart, ystart, zstart), (xend, yend, zend))
+    return (
+        (
+            min(xstart, xend),
+            min(ystart, yend),
+            min(zstart, zend),
+        ),
+        (
+            max(xstart, xend),
+            max(ystart, yend),
+            max(zstart, zend),
+        ),
+    )
 end
+
 function Bounds(p1::Vect, p2::Vect)::Bounds
-    return (p1, p2)
+    return (
+        Vect(
+            min(p1[1], p2[1]),
+            min(p1[2], p2[2]),
+            min(p1[3], p2[3]),
+        ),
+        Vect(
+            max(p1[1], p2[1]),
+            max(p1[2], p2[2]),
+            max(p1[3], p2[3]),
+        ),
+    )
 end
 
 function inside(b::Bounds, v::Vect)::Bool
     for i in 1:3
-        if v[i] < min(b[1][i], b[2][i]) || v[i] > max(b[1][i], b[2][i])
+        if v[i] < b[1][i] || v[i] > b[2][i]
             return false
         end
     end
     return true
-
-    # return if b < a
-    #     inside(b, a, v)
-    # else
-    #     reduce(&, (v .> a) .&& (v .< b))
-    #     # return v > a && v < b
-    # end
 end
 
 function direction(a::Vect, b::Vect)::Vect

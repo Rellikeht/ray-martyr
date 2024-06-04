@@ -41,9 +41,10 @@ function render!(
     scx::Int, scy::Int = size(mscene)
     # println(scx)
     # println(scy)
-    Makie.image!(mscene, march(scene, (scx, scy), reflection_limit))
-    # image!(scene, [RGBf(i / scx, j / scy, 0) for i in 1:scx, j in 1:scy])
-    # image!(scene, [(i+j)/(scx+scy) for i in 1:scx, j in 1:scy])
+    px = march(scene, (scx, scy), reflection_limit)
+    # println(px)
+    Makie.image!(mscene, px)
+    # Makie.image!(mscene, march(scene, (scx, scy), reflection_limit))
 end
 
 # function main()::Scene
