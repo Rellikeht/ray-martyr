@@ -1,8 +1,12 @@
 module Lights
 using Objects, Vectors
+export Color, Ray, Frange
+export march
+export BLACK, DEFAULT_DISTANCE_LIMIT, DEFAULT_REFLECTION_LIMIT
+
+const Frange = StepRangeLen{Float64,Float64,Float64,Int}
 
 # const Color = NTuple{3, Int} 
-
 const Color = Float64
 function Color()
     return 0.0
@@ -46,9 +50,29 @@ end
 
 function march(
     scene::Scene,
-    resolution::Tuple{Int, Int}=(640, 480)
+    resolution::Tuple{Int,Int}=(640, 480),
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
 )::Vector{Color}
+    _, ymin, zmin = scene.camera.imagePlane.down_left
+    _, ymax, zmax = scene.camera.imagePlane.top_right
+    colors::Vector{Color} = zeros((resolution[1] + 1) * (resolution[2] + 1))
+
+    for y in 0:resolution[1]
+        for z in 0:resolution[2]
+            p::Vect = Vect(
+                scene.camera.imagePlane.top_right[1],
+                ymin + y * (ymax - ymin) / resolution[1],
+                zmin + z * (zmax - zmin) / resolution[2],
+            )
+            colors[1+y*resolution[2]+z] = march(
+                scene,
+                Ray(scene.camera.position, p),
+                reflection_limit
+            )
+        end
+    end
+
+    return colors
 end
 
 let
@@ -65,7 +89,8 @@ let
         psolid
     )
 
-    _ = march(pscene, Ray((0, 0, 0), (1, 0, 0)))
+    _ = march(pscene, Ray((0, 0, 0), (1, 0, 0)), 1)
+    _ = march(pscene, (4, 3), 1)
 end
 
 end

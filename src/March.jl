@@ -4,38 +4,43 @@
 module March
 using Lights
 
-const FHD = (1920, 1080)
-const HD = (1280, 720)
-
 using CairoMakie
 CairoMakie.activate!()
+import Lights: Scene, Camera
+import Objects: Sphere
+
+const FHD = (1920, 1080)
+const HD = (1280, 720)
 
 # Scene from GLMakie refuses to work
 # using GLMakie
 # GLMakie.activate!()
 
-function initScene(
+function initMscene(
     size::Tuple{Int,Int}=FHD,
     background::Union{String,Symbol}=:black
-)::Scene
-    scene::Scene = Scene(
+)::Makie.Scene
+    scene::Makie.Scene = Makie.Scene(
         clear=true,
         backgroundcolor=background,
         size=size,
     )
     # Makie.update_limits!(scene)
     # scale!(scene, 1)
-    campixel!(scene)
+    Makie.campixel!(scene)
     return scene
 end
 
 function render!(
-    scene::Scene
+    mscene::Makie.Scene,
+    scene::Scene,
+    reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
 )
-    scx::Int, scy::Int = size(scene)
-    println(scx)
-    println(scy)
-    image!(scene, [RGBf(i / scx, j / scy, 0) for i in 1:scx, j in 1:scy])
+    scx::Int, scy::Int = size(mscene)
+    # println(scx)
+    # println(scy)
+    Makie.image!(mscene, march(scene, (scx-1, scy-1), reflection_limit))
+    # image!(scene, [RGBf(i / scx, j / scy, 0) for i in 1:scx, j in 1:scy])
     # image!(scene, [(i+j)/(scx+scy) for i in 1:scx, j in 1:scy])
 end
 
@@ -46,8 +51,23 @@ end
 # end
 
 let
-    precs = initScene((2, 2))
-    render!(precs)
+    using Objects, Vectors
+    precs = initMscene((2, 2))
+
+    psolid = [
+        Sphere(Vect(1, 2, 3), 2.0),
+        Cube(Vect(4, 5, 6), 3.0)
+    ]
+
+    pcam = Camera()
+    pscene = Scene(
+        pcam,
+        DEFAULT_WORLD_BOUNDS,
+        [LightSource()],
+        psolid
+    )
+
+    render!(precs, pscene)
 end
 
 end
