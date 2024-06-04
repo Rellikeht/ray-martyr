@@ -28,44 +28,56 @@ function march(
         return BLACK
     end
 
-    # BOX_SIZE::Float64 = distance(
-    #     scene.bounds[1],
-    #     scene.bounds[2]
-    # )
-    # STARTING_POSITION::Vect = ray.position
+    #     BOX_SIZE::Float64 = distance(
+    #         scene.bounds[1],
+    #         scene.bounds[2]
+    #     )
+    #     STARTING_POSITION::Vect = ray.position
 
     while inside(scene.bounds, ray.position)
         d::Float64 = sdf(scene, ray.position)
         if d < distance_limit
-            norm = normal(scene, ray.position)
+            # norm = normal(scene, ray.position)
 
-            shadow_ray = Ray(ray.position, norm)
-            shadow_ray_color = RGBf(0)
             light::LightSource = scene.lights[1]
+            shadow_ray_direction = direction(ray.position, light.position)
+            shadow_ray = Ray(
+                ray.position + 2 * distance_limit * shadow_ray_direction,
+                shadow_ray_direction
+            )
+            shadow_ray_color = RGBf(0)
             while inside(scene.bounds, shadow_ray.position)
                 d = lightSdf(scene, shadow_ray.position)
-                if d < distance_limit
+                if d < distance_limit / 10
                     closest = lightClosestElement(scene, shadow_ray.position)
                     if closest == light
-                        shadow_ray_color = light.intensity
+                        shadow_ray_color =
+                            light.intensity *
+                            abs(
+                                shadow_ray.direction *
+                                normal(closest, shadow_ray.position)
+                            )
                     else
                         shadow_ray_color = BLACK
                     end
+                    break
                 end
                 shadow_ray.position += d * shadow_ray.direction
             end
 
-            reflected = march(
-                scene,
-                Ray(
-                    ray.position,
-                    reflect(norm, ray.direction)
-                );
-                reflection_limit=reflection_limit - 1,
-                distance_limit=distance_limit
-            )
+            # reflected = march(
+            #     scene,
+            #     Ray(
+            #         ray.position,
+            #         reflect(norm, ray.direction)
+            #     );
+            #     reflection_limit=reflection_limit - 1,
+            #     distance_limit=distance_limit
+            # )
 
-            return reflected + shadow_ray_color
+            # return RGBf(0.5 + norm[1] / 2, 0.5 + norm[2] / 2, 0.5 + norm[3] / 2)
+            return shadow_ray_color
+            # return reflected / 2 + shadow_ray_color / 2
             # return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 2)
         end
         ray.position += d * ray.direction

@@ -185,6 +185,23 @@ function lightClosestElement(scene::Scene, pos::Vect)::AbstractObject
 end
 
 function normal(
+    object::AbstractObject,
+    position::Vect,
+    eps::Float64=DEFAULT_EPS,
+)::Vect
+    normalize(
+        Vect(
+            sdf(object, position + Vect(eps, 0.0, 0.0)) -
+            sdf(object, position - Vect(eps, 0.0, 0.0)),
+            sdf(object, position + Vect(0.0, eps, 0.0)) -
+            sdf(object, position - Vect(0.0, eps, 0.0)),
+            sdf(object, position + Vect(0.0, 0.0, eps)) -
+            sdf(object, position - Vect(0.0, 0.0, eps)),
+        )
+    )
+end
+
+function normal(
     scene::Scene,
     position::Vect,
     eps::Float64=DEFAULT_EPS,

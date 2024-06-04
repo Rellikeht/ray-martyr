@@ -13,7 +13,11 @@ const IntOrFloat = Union{Int,Float64}
 
 const Vect = NTuple{3,Float64}
 
-function Vect(x::T, y::T, z::T) where {T<:IntOrFloat}
+function Vect(x::T1, y::T2, z::T3) where {
+    T1<:IntOrFloat,
+    T2<:IntOrFloat,
+    T3<:IntOrFloat,
+}
     Float64.((x, y, z))
 end
 function Vect()

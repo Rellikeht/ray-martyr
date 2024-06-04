@@ -8,11 +8,11 @@ solids = [
     # Sphere(Vect(1, 2, 3), 2.0),
     # Cube(Vect(4, 5, 6), 3.0),
 ]
-
 scene = Scene(
     cam,
     DEFAULT_WORLD_BOUNDS,
-    [LightSource(Vect(2, 3, 0), RGBf(1.0, 1.0, 0.2))],
+    # [LightSource(Vect(1.5, 3, -1), RGBf(1.0, 1.0, 1.0))],
+    [LightSource(Vect(1, 3, 0), RGBf(1.0, 1.0, 1.0))],
     solids
 )
 
