@@ -16,13 +16,13 @@ const BLACK = RGBf(0.0, 0.0, 0.0)
 mutable struct Ray
     position::Vect
     direction::Vect
-    # intensity::Float64
 end
 
 function march(
     scene::Scene,
-    ray::Ray,
+    ray::Ray;
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
+    distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::RGBf
     if reflection_limit < 0
         return BLACK
@@ -36,7 +36,10 @@ function march(
 
     while inside(scene.bounds, ray.position)
         d::Float64 = minDist(scene, ray.position)
-        if d < DEFAULT_DISTANCE_LIMIT
+        if d < distance_limit
+            # normal
+            # shadow ray
+            # reflection
             return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 2)
         end
         ray.position += d * ray.direction
@@ -47,8 +50,9 @@ end
 
 function march(
     scene::Scene,
-    resolution::Tuple{Int,Int}=(640, 480),
+    resolution::Tuple{Int,Int}=(640, 480);
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
+    distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::Matrix{RGBf}
     _, ymin, zmin = scene.camera.imagePlane.down_left
     _, ymax, zmax = scene.camera.imagePlane.top_right
@@ -63,8 +67,9 @@ function march(
                 Ray(
                     scene.camera.position,
                     direction(scene.camera.position, p),
-                ),
-                reflection_limit
+                );
+                reflection_limit,
+                distance_limit,
             )
             i += 1
         end
@@ -75,20 +80,21 @@ end
 
 let
     psolid = [
-        Sphere(Vect(1, 2, 3), 2.0),
-        Cube(Vect(4, 5, 6), 3.0)
+        Solid(Sphere(Vect(1, 2, 3), 2.0)),
+        Solid(Cube(Vect(4, 5, 6), 3.0))
     ]
 
     pcam = Camera()
     pscene = Scene(
         pcam,
         DEFAULT_WORLD_BOUNDS,
-        [LightSource()],
+        [LightSource(Vect(), 1.0)],
         psolid
     )
 
-    _ = march(pscene, Ray((0, 0, 0), (1, 0, 0)), 1)
-    _ = march(pscene, (4, 3), 1)
+    _ = march(pscene, Ray((0, 0, 0), (1, 0, 0)); reflection_limit=1)
+    _ = march(pscene, Ray((0, 0, 0), (1, 1, 0)); reflection_limit=2)
+    _ = march(pscene, (20, 10); reflection_limit=3)
 end
 
 end

@@ -2,9 +2,9 @@ module Objects
 
 using Vectors
 
-export AbstractObject, AbstractSolid, AbstractLightSource
+export AbstractObject, AbstractMesh, AbstractLightSource
 export Sphere, Cube, sdf, minDist, closestElement
-export LightSource, Camera, Plane, Scene
+export LightSource, Camera, Scene, Solid, Material
 export DEFAULT_WORLD_BOUNDS
 
 # const DEFAULT_WORLD_BOUNDS = Bounds(
@@ -18,10 +18,10 @@ const DEFAULT_WORLD_BOUNDS = Bounds(
 )
 
 abstract type AbstractObject end
-abstract type AbstractSolid <: AbstractObject end
+abstract type AbstractMesh <: AbstractObject end
 abstract type AbstractLightSource <: AbstractObject end
 
-struct Sphere <: AbstractSolid
+struct Sphere <: AbstractMesh
     position::Vect
     radius::Float64
     Sphere(position::Vect, radius::T=1.0) where
@@ -43,7 +43,7 @@ const cube_default = (x -> x ./ 2).((
     (-1.0, -1.0, -1.0),
 ))
 
-struct Cube <: AbstractSolid
+struct Cube <: AbstractMesh
     verts::NTuple{8,Vect}
     Cube(verts::NTuple{8,Vect}=cube_default) = new(verts)
     Cube(
@@ -68,13 +68,38 @@ struct LightSource <: AbstractLightSource
     ) = new(position, intensity)
 end
 
-struct Plane
-    top_right::Vect
-    down_left::Vect
-    Plane(
-        top_right::Vect=Vect(0, -1, -1),
-        down_left::Vect=Vect(0, 1, 1)
-    ) = new(top_right, down_left)
+struct Material
+    red::Float64
+    green::Float64
+    blue::Float64
+
+    Material(
+        red::Float64=0.5,
+        green::Float64=0.5,
+        blue::Float64=0.5,
+    ) = begin
+        if red < 0.0 || red > 1.0
+            throw(ArgumentError("Invalid red value"))
+        elseif green < 0.0 || green > 1.0
+            throw(ArgumentError("Invalid green value"))
+        elseif blue < 0.0 || blue > 1.0
+            throw(ArgumentError("Invalid blue value"))
+        end
+        new(red, green, blue)
+    end
+end
+
+struct Solid
+    mesh::AbstractMesh
+    material::Material
+    Solid(
+        mesh::AbstractMesh,
+        material::Material=Material(),
+    ) = new(mesh, material)
+end
+
+function sdf(s::Solid, p::Vect)::Float64
+    sdf(s.mesh, p)
 end
 
 struct Camera
@@ -93,14 +118,14 @@ struct Scene
     camera::Camera
     bounds::Bounds
     lights::Vector{AbstractLightSource}
-    solids::Vector{AbstractSolid}
+    solids::Vector{Solid}
 
     Scene(
         camera::Camera=Camera(),
         bounds::Bounds=DEFAULT_WORLD_BOUNDS,
         lights::Vector{L}=[],
-        solids::Vector{S}=[],
-    ) where {L<:AbstractLightSource,S<:AbstractSolid} =
+        solids::Vector{Solid}=[],
+    ) where {L<:AbstractLightSource} =
         new(camera, bounds, lights, solids)
 end
 
@@ -108,15 +133,15 @@ function minDist(scene::Scene, pos::Vect)::Float64
     reduce(min, sdf.(scene.solids, (pos,)))
 end
 
-function closestElement(scene::Scene, pos::Vect)::AbstractSolid
+function closestElement(scene::Scene, pos::Vect)::Solid
     scene.solids[argmin(sdf.(scene.solids, (pos,)))]
 end
 
 let
     ppoint = Vect(4, 2, 0)
     psolid = [
-        Sphere(Vect(1, 2, 3), 2.0),
-        Cube(Vect(4, 5, 6), 3.0)
+        Solid(Sphere(Vect(1, 2, 3), 2.0)),
+        Solid(Cube(Vect(4, 5, 6), 3.0))
     ]
 
     for s in psolid

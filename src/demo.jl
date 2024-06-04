@@ -3,7 +3,7 @@ mscene = initMscene(HD)
 cam = Camera()
 
 solids = [
-    Sphere(Vect(3, 0, 0), 1.5),
+    Solid(Sphere(Vect(3, 0, 0), 1.5), Material(0.1, 1.0, 0.7)),
     # Sphere(Vect(1, 2, 3), 2.0),
     # Cube(Vect(4, 5, 6), 3.0),
 ]

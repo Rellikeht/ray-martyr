@@ -41,7 +41,11 @@ function render!(
     scx::Int, scy::Int = size(mscene)
     # println(scx)
     # println(scy)
-    px = march(scene, (scx, scy), reflection_limit)
+    px = march(
+        scene,
+        (scx, scy);
+        reflection_limit=reflection_limit
+    )
     # println(px)
     Makie.image!(mscene, px)
     # Makie.image!(mscene, march(scene, (scx, scy), reflection_limit))
@@ -55,18 +59,18 @@ end
 
 let
     using Objects, Vectors
-    precs = initMscene((3, 3))
+    precs = initMscene((20, 10))
 
     psolid = [
-        Sphere(Vect(1, 2, 3), 2.0),
-        Cube(Vect(4, 5, 6), 3.0)
+        Solid(Sphere(Vect(1, 2, 3), 2.0)),
+        Solid(Cube(Vect(4, 5, 6), 3.0))
     ]
 
     pcam = Camera()
     pscene = Scene(
         pcam,
         DEFAULT_WORLD_BOUNDS,
-        [LightSource()],
+        [LightSource(Vect(2, 3, 0), 2.0)],
         psolid
     )
 

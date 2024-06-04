@@ -2,12 +2,15 @@ module Vectors
 
 import Base: rand, zero, +, -, *, /
 
-export Vect, IntOrFloat, Bounds
+export Vect, IntOrFloat, Bounds, Plane
 export normalize, distance, reflect
 export inside, direction, rand
 export +, -, *, /
 
 const IntOrFloat = Union{Int,Float64}
+
+# Vectors
+
 const Vect = NTuple{3,Float64}
 
 function Vect(x::T, y::T, z::T) where {T<:IntOrFloat}
@@ -69,7 +72,18 @@ function reflect(norm::Vect, v::Vect)::Vect
     v - 2 * v * norm * norm / length(norm)^2
 end
 
+function direction(a::Vect, b::Vect)::Vect
+    return normalize(b .- a)
+end
+
+function rand(::Type{Vect}, r::AbstractRange{Float64})
+    (rand(r), rand(r), rand(r))
+end
+
+# Bounds
+
 const Bounds = Tuple{NTuple{3,IntOrFloat},NTuple{3,IntOrFloat}}
+
 function Bounds(
     xstart::IntOrFloat,
     xend::IntOrFloat,
@@ -116,13 +130,18 @@ function inside(b::Bounds, v::Vect)::Bool
     return true
 end
 
-function direction(a::Vect, b::Vect)::Vect
-    return normalize(b .- a)
+# Plane
+
+struct Plane
+    top_right::Vect
+    down_left::Vect
+    Plane(
+        top_right::Vect=Vect(0, -1, -1),
+        down_left::Vect=Vect(0, 1, 1)
+    ) = new(top_right, down_left)
 end
 
-function rand(::Type{Vect}, r::AbstractRange{Float64})
-    (rand(r), rand(r), rand(r))
-end
+# Precompilation
 
 let
     pcv1, pcv2 = Vect(1, 2, 3), Vect(2, 4, 8)
