@@ -28,19 +28,45 @@ function march(
         return BLACK
     end
 
-    BOX_SIZE::Float64 = distance(
-        scene.bounds[1],
-        scene.bounds[2]
-    )
-    STARTING_POSITION::Vect = ray.position
+    # BOX_SIZE::Float64 = distance(
+    #     scene.bounds[1],
+    #     scene.bounds[2]
+    # )
+    # STARTING_POSITION::Vect = ray.position
 
     while inside(scene.bounds, ray.position)
-        d::Float64 = minDist(scene, ray.position)
+        d::Float64 = sdf(scene, ray.position)
         if d < distance_limit
-            # normal
-            # shadow ray
-            # reflection
-            return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 2)
+            norm = normal(scene, ray.position)
+
+            shadow_ray = Ray(ray.position, norm)
+            shadow_ray_color = RGBf(0)
+            light::LightSource = scene.lights[1]
+            while inside(scene.bounds, shadow_ray.position)
+                d = lightSdf(scene, shadow_ray.position)
+                if d < distance_limit
+                    closest = lightClosestElement(scene, shadow_ray.position)
+                    if closest == light
+                        shadow_ray_color = light.intensity
+                    else
+                        shadow_ray_color = BLACK
+                    end
+                end
+                shadow_ray.position += d * shadow_ray.direction
+            end
+
+            reflected = march(
+                scene,
+                Ray(
+                    ray.position,
+                    reflect(norm, ray.direction)
+                );
+                reflection_limit=reflection_limit - 1,
+                distance_limit=distance_limit
+            )
+
+            return reflected + shadow_ray
+            # return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 2)
         end
         ray.position += d * ray.direction
     end
@@ -88,7 +114,7 @@ let
     pscene = Scene(
         pcam,
         DEFAULT_WORLD_BOUNDS,
-        [LightSource(Vect(), 1.0)],
+        [LightSource(Vect(3, 2, 0))],
         psolid
     )
 

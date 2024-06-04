@@ -1,11 +1,15 @@
 module Objects
 
 using Vectors
+import CairoMakie: RGBf
 
 export AbstractObject, AbstractMesh, AbstractLightSource
-export Sphere, Cube, sdf, minDist, closestElement
+export Sphere, Cube
 export LightSource, Camera, Scene, Solid, Material
-export DEFAULT_WORLD_BOUNDS
+export normal
+export sdf, lightSdf
+export closestElement, lightClosestElement
+export DEFAULT_WORLD_BOUNDS, DEFAULT_EPS
 
 # const DEFAULT_WORLD_BOUNDS = Bounds(
 #     Vect(0, 100, 100),
@@ -16,6 +20,7 @@ const DEFAULT_WORLD_BOUNDS = Bounds(
     Vect(-5, 10, 10),
     Vect(20, -10, -10),
 )
+const DEFAULT_EPS = 1e-7
 
 abstract type AbstractObject end
 abstract type AbstractMesh <: AbstractObject end
@@ -59,15 +64,6 @@ function sdf(cube::Cube, vect::Vect)::Float64
     reduce(min, distance.(cube.verts, (vect,)))
 end
 
-struct LightSource <: AbstractLightSource
-    position::Vect
-    intensity::Float64
-    LightSource(
-        position::Vect=Vect(),
-        intensity::Float64=0.0
-    ) = new(position, intensity)
-end
-
 struct Material
     red::Float64
     green::Float64
@@ -89,7 +85,7 @@ struct Material
     end
 end
 
-struct Solid
+struct Solid <: AbstractObject
     mesh::AbstractMesh
     material::Material
     Solid(
@@ -100,6 +96,27 @@ end
 
 function sdf(s::Solid, p::Vect)::Float64
     sdf(s.mesh, p)
+end
+
+struct LightSource <: AbstractLightSource
+    position::Vect
+    intensity::RGBf
+
+    LightSource(
+        position::Vect=Vect(),
+        intensity::RGBf=RGBf(1.0, 1.0, 1.0)
+    ) = new(position, intensity)
+end
+
+# function LightSource(
+#         position::Vect=Vect(),
+#         intensity::Float64=0.0
+#     )::LightSource
+#     LightSource(position, RGBf(intensity, intensity, intensity))
+# end
+
+function sdf(s::LightSource, p::Vect)::Float64
+    distance(s.position, p)
 end
 
 struct Camera
@@ -119,7 +136,6 @@ struct Scene
     bounds::Bounds
     lights::Vector{AbstractLightSource}
     solids::Vector{Solid}
-
     Scene(
         camera::Camera=Camera(),
         bounds::Bounds=DEFAULT_WORLD_BOUNDS,
@@ -129,12 +145,60 @@ struct Scene
         new(camera, bounds, lights, solids)
 end
 
-function minDist(scene::Scene, pos::Vect)::Float64
-    reduce(min, sdf.(scene.solids, (pos,)))
+function sdf(
+    objects::Vector{T},
+    pos::Vect
+)::Float64 where {T<:AbstractObject}
+    reduce(min, sdf.(objects, (pos,)))
+end
+
+function closestElement(
+    objects::Vector{T},
+    pos::Vect
+)::T where {T<:AbstractObject}
+    objects[argmin(sdf.(objects, (pos,)))]
 end
 
 function closestElement(scene::Scene, pos::Vect)::Solid
-    scene.solids[argmin(sdf.(scene.solids, (pos,)))]
+    closestElement(scene.solids, pos)
+end
+
+function sdf(scene::Scene, pos::Vect)::Float64
+    sdf(scene.solids, pos)
+end
+
+function lightSdf(scene, pos::Vect)::Float64
+    min(sdf(scene, pos), sdf(scene.lights, pos))
+end
+
+function closestLight(scene::Scene, pos::Vect)::LightSource
+    scene.lights[argmin(sdf.(scene.lights, (pos,)))]
+end
+
+function lightClosestElement(scene::Scene, pos::Vect)::AbstractObject
+    clight = closestLight(scene, pos)
+    csolid = closestElement(scene, pos)
+    if sdf(clight, pos) < sdf(csolid, pos)
+        return clight
+    end
+    csolid
+end
+
+function normal(
+    scene::Scene,
+    position::Vect,
+    eps::Float64=DEFAULT_EPS,
+)::Vect
+    normalize(
+        Vect(
+            sdf(scene, position + Vect(eps, 0.0, 0.0)) -
+            sdf(scene, position - Vect(eps, 0.0, 0.0)),
+            sdf(scene, position + Vect(0.0, eps, 0.0)) -
+            sdf(scene, position - Vect(0.0, eps, 0.0)),
+            sdf(scene, position + Vect(0.0, 0.0, eps)) -
+            sdf(scene, position - Vect(0.0, 0.0, eps)),
+        )
+    )
 end
 
 let
@@ -147,17 +211,24 @@ let
     for s in psolid
         _ = sdf(s, ppoint)
     end
+    plight = LightSource()
+    _ = sdf(plight, ppoint)
 
     pcam = Camera()
     pscene = Scene(
         pcam,
         DEFAULT_WORLD_BOUNDS,
-        [LightSource()],
+        [plight, LightSource(Vect(1, 2, 3))],
         psolid
     )
 
-    _ = minDist(pscene, ppoint)
+    _ = normal(pscene, ppoint)
+    _ = sdf(pscene, ppoint)
+    _ = sdf(pscene.lights, ppoint)
     _ = closestElement(pscene, ppoint)
+    _ = closestElement(pscene.lights, ppoint)
+    _ = closestLight(pscene, ppoint)
+    _ = lightClosestElement(pscene, ppoint)
 end
 
 end

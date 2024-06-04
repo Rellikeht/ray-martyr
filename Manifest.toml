@@ -843,7 +843,7 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.2.0"
 
 [[deps.Objects]]
-deps = ["Vectors"]
+deps = ["CairoMakie", "Vectors"]
 path = "src/Objects"
 uuid = "62ecdadc-e19b-4eca-b0de-2efed354d683"
 version = "0.1.0"
