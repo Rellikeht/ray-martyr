@@ -1,4 +1,5 @@
 module Objects
+
 using Vectors
 
 export AbstractObject, AbstractSolid, AbstractLightSource
@@ -6,9 +7,14 @@ export Sphere, Cube, sdf, minDist, closestElement
 export LightSource, Camera, Plane, Scene
 export DEFAULT_WORLD_BOUNDS
 
-const DEFAULT_WORLD_BOUNDS = (
-    Vect(0, 100, 100),
-    Vect(200, -100, -100),
+# const DEFAULT_WORLD_BOUNDS = Bounds(
+#     Vect(0, 100, 100),
+#     Vect(200, -100, -100),
+# )
+
+const DEFAULT_WORLD_BOUNDS = Bounds(
+    Vect(0, 10, 10),
+    Vect(20, -10, -10),
 )
 
 abstract type AbstractObject end
@@ -23,7 +29,7 @@ struct Sphere <: AbstractSolid
 end
 
 function sdf(sphere::Sphere, vect::Vect)::Float64
-    distance(sphere.position, vect)
+    distance(sphere.position, vect) - sphere.radius
 end
 
 const cube_default = (x -> x ./ 2).((
@@ -50,11 +56,6 @@ struct Cube <: AbstractSolid
 end
 
 function sdf(cube::Cube, vect::Vect)::Float64
-    # d::Float64 = 0
-    # @simd for i in eachindex(cube.verts)
-    #     d = min(d, distance(cube.verts[i], vect))
-    # end
-    # return d
     reduce(min, distance.(cube.verts, (vect,)))
 end
 

@@ -3,6 +3,8 @@
 
 module March
 using Lights
+export FHD, HD
+export initMscene, render!
 
 using CairoMakie
 CairoMakie.activate!()
@@ -39,7 +41,7 @@ function render!(
     scx::Int, scy::Int = size(mscene)
     # println(scx)
     # println(scy)
-    Makie.image!(mscene, march(scene, (scx-1, scy-1), reflection_limit))
+    Makie.image!(mscene, march(scene, (scx, scy), reflection_limit))
     # image!(scene, [RGBf(i / scx, j / scy, 0) for i in 1:scx, j in 1:scy])
     # image!(scene, [(i+j)/(scx+scy) for i in 1:scx, j in 1:scy])
 end
@@ -52,7 +54,7 @@ end
 
 let
     using Objects, Vectors
-    precs = initMscene((2, 2))
+    precs = initMscene((3, 3))
 
     psolid = [
         Sphere(Vect(1, 2, 3), 2.0),

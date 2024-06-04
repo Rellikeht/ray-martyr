@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.2"
+julia_version = "1.10.3"
 manifest_format = "2.0"
 project_hash = "b42b2fa9f4970c230259a9be9e1c88349142e8c2"
 
@@ -183,7 +183,7 @@ weakdeps = ["Dates", "LinearAlgebra"]
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.1.0+0"
+version = "1.1.1+0"
 
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -717,7 +717,7 @@ uuid = "38a345b3-de98-5d2b-a5d3-14cd9215e700"
 version = "2.40.1+0"
 
 [[deps.Lights]]
-deps = ["Objects", "Vectors"]
+deps = ["CairoMakie", "Objects", "Vectors"]
 path = "src/Lights"
 uuid = "546eee7c-2c3e-4cfe-8eb7-68318552c85b"
 version = "0.1.0"

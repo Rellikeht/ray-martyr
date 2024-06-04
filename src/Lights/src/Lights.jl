@@ -1,20 +1,17 @@
 module Lights
+
 using Objects, Vectors
-export Color, Ray, Frange
+import CairoMakie: RGBf
+
+export Ray, Frange
 export march
 export BLACK, DEFAULT_DISTANCE_LIMIT, DEFAULT_REFLECTION_LIMIT
 
 const Frange = StepRangeLen{Float64,Float64,Float64,Int}
 
-# const Color = NTuple{3, Int} 
-const Color = Float64
-function Color()
-    return 0.0
-end
-
 const DEFAULT_DISTANCE_LIMIT = 0.01
 const DEFAULT_REFLECTION_LIMIT = 1
-const BLACK = Color()
+const BLACK = RGBf(0, 0, 0)
 
 mutable struct Ray
     position::Vect
@@ -26,7 +23,7 @@ function march(
     scene::Scene,
     ray::Ray,
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
-)::Color
+)::RGBf
     if reflection_limit < 0
         return BLACK
     end
@@ -37,12 +34,12 @@ function march(
     )
     STARTING_POSITION::Vect = ray.position
 
-    while !inside(scene.bounds, ray.position)
+    while inside(scene.bounds, ray.position)
         d::Float64 = minDist(scene, ray.position)
         if d < DEFAULT_DISTANCE_LIMIT
-            return Color(distance(STARTING_POSITION, ray.position) / BOX_SIZE)
+            return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 255)
         end
-        ray.position += d
+        ray.position += d * ray.direction
     end
 
     return BLACK
@@ -52,23 +49,24 @@ function march(
     scene::Scene,
     resolution::Tuple{Int,Int}=(640, 480),
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
-)::Vector{Color}
+)::Matrix{RGBf}
     _, ymin, zmin = scene.camera.imagePlane.down_left
     _, ymax, zmax = scene.camera.imagePlane.top_right
-    colors::Vector{Color} = zeros((resolution[1] + 1) * (resolution[2] + 1))
+    colors::Matrix{RGBf} = zeros(resolution[1], resolution[2])
+    i::Int = 1
 
-    for y in 0:resolution[1]
-        for z in 0:resolution[2]
-            p::Vect = Vect(
-                scene.camera.imagePlane.top_right[1],
-                ymin + y * (ymax - ymin) / resolution[1],
-                zmin + z * (zmax - zmin) / resolution[2],
-            )
-            colors[1+y*resolution[2]+z] = march(
+    for y in Frange(ymin:(ymax-ymin)/(resolution[1]-1):ymax)
+        for z in Frange(zmin:(zmax-zmin)/(resolution[2]-1):zmax)
+            p::Vect = Vect(scene.camera.imagePlane.top_right[1], y, z)
+            colors[i] = march(
                 scene,
-                Ray(scene.camera.position, p),
+                Ray(
+                    scene.camera.position,
+                    direction(scene.camera.position, p),
+                ),
                 reflection_limit
             )
+            i += 1
         end
     end
 

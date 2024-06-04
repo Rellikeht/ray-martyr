@@ -1,8 +1,10 @@
 module Vectors
+
 import Base: rand, zero, +, -, *, /
+
 export Vect, IntOrFloat, Bounds
-export length, normalize, distance, reflect
-export inside, rand
+export normalize, distance, reflect
+export inside, direction, rand
 export +, -, *, /
 
 const IntOrFloat = Union{Int,Float64}
@@ -84,7 +86,7 @@ end
 
 function inside(b::Bounds, v::Vect)::Bool
     for i in 1:3
-        if v[i] < min(b[1][i], b[2][i]) && v[i] > max(b[1][i], b[2][i])
+        if v[i] < min(b[1][i], b[2][i]) || v[i] > max(b[1][i], b[2][i])
             return false
         end
     end
@@ -98,9 +100,9 @@ function inside(b::Bounds, v::Vect)::Bool
     # end
 end
 
-# function between(a::Vect, b::Vect)::Vect
-#     return b .- a
-# end
+function direction(a::Vect, b::Vect)::Vect
+    return normalize(b .- a)
+end
 
 function rand(::Type{Vect}, r::AbstractRange{Float64})
     (rand(r), rand(r), rand(r))
@@ -122,7 +124,7 @@ let
     _ = normalize(pcv1)
     _ = reflect(pcv1, pcv2)
 
-    # _ = between(pcv1, pcv2)
+    _ = direction(pcv1, pcv2)
     _ = inside((pcv1, pcv2), Vect())
     _ = rand(Vect, -1:0.1:1)
 end
