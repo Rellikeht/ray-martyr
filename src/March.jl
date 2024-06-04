@@ -70,7 +70,7 @@ let
     pscene = Scene(
         pcam,
         DEFAULT_WORLD_BOUNDS,
-        [LightSource(Vect(2, 3, 0), 2.0)],
+        [LightSource(Vect(2, 3, 0), RGBf(1.0, 1.0, 1.0))],
         psolid
     )
 

@@ -65,7 +65,7 @@ function march(
                 distance_limit=distance_limit
             )
 
-            return reflected + shadow_ray
+            return reflected + shadow_ray_color
             # return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 2)
         end
         ray.position += d * ray.direction
