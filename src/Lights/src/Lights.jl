@@ -10,7 +10,7 @@ export BLACK, DEFAULT_DISTANCE_LIMIT, DEFAULT_REFLECTION_LIMIT
 
 const Frange = StepRangeLen{Float64,Float64,Float64,Int}
 
-const DEFAULT_DISTANCE_LIMIT = 0.001
+const DEFAULT_DISTANCE_LIMIT = 1e-3
 const DEFAULT_REFLECTION_LIMIT = 1
 const BLACK = RGBf(0.0, 0.0, 0.0)
 
@@ -44,7 +44,7 @@ function shadowRay(
     ray::Ray = Ray(position, direction(position, light.position))
     # values were essentially guessed, they look
     # reasonably well
-    ray.position += 4 * distance_limit * ray.direction
+    ray.position += 5 * distance_limit * ray.direction
 
     while inside(scene.bounds, ray.position)
         d::Float64 = min(
@@ -120,21 +120,18 @@ function march(
     _, ymax, zmax = scene.camera.imagePlane.top_right
     colors::Matrix{RGBf} = zeros(resolution[1], resolution[2])
 
-    # TODO threads
-    i::Int = 0
-    for z in Frange(zmin:(zmax-zmin)/(resolution[2]-1):zmax)
-        j::Int = 1
-        for y in Frange(ymin:(ymax-ymin)/(resolution[1]-1):ymax)
+    @threads for i in 0:resolution[2]-1
+        z = zmin + (zmax-zmin)*i/(resolution[2]-1)
+        for j in 0:resolution[1]-1
+            y = ymin + (ymax-ymin)*j/(resolution[1]-1)
             p::Vect = Vect(x, y, z)
-            colors[i*resolution[1]+j] = march(
+            colors[j+1, i+1] = march(
                 scene,
                 Ray(p, direction(scene.camera.position, p));
                 reflection_limit,
                 distance_limit,
             )
-            j += 1
         end
-        i += 1
     end
 
     return colors

@@ -67,7 +67,7 @@ function distBetween(
 end
 
 function inside(b::Box, v::Vect)::Bool
-    for i in 1:3
+    @simd for i in 1:3
         if v[i] < b.center[i] - b.sizes[i] / 2 ||
            v[i] > b.center[i] + b.sizes[i] / 2
             return false
@@ -80,7 +80,6 @@ function sdf(box::Box, vect::Vect)::Float64
     verts::NTuple{3,NTuple{2,Float64}} = (
         (x, s) -> (x - s / 2, x + s / 2)
     ).(box.center, box.sizes)
-    # result::Float64 = sqrt(sum((distBetween.(verts, vect)).^2))
 
     if inside(box, vect)
         return -sqrt(sum((distBetween.(verts, vect)) .^ 2))

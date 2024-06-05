@@ -49,9 +49,6 @@ function *(v1::Vect, v2::Vect)::Float64
     return sum(v1 .* v2)
 end
 
-function sum(v::Vect)::Float64
-    v[1] + v[2] + v[3]
-end
 function length(v::Vect)::Float64
     sqrt(sum(v .^ 2))
 end
@@ -126,7 +123,7 @@ function Bounds(p1::Vect, p2::Vect)::Bounds
 end
 
 function inside(b::Bounds, v::Vect)::Bool
-    for i in 1:3
+    @simd for i in 1:3
         if v[i] < b[1][i] || v[i] > b[2][i]
             return false
         end
@@ -136,6 +133,7 @@ end
 
 # Plane
 
+# TODO proper plane
 struct Plane
     top_right::Vect
     down_left::Vect
