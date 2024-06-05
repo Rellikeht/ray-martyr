@@ -1,7 +1,7 @@
 module Lights
 
 using Objects, Vectors
-import Base: *
+import Base: max
 import Base.Threads: @threads
 
 export Ray, Frange
@@ -24,6 +24,14 @@ function *(c1::RGBf, c2::RGBf)::RGBf
         c1.r * c2.r,
         c1.g * c2.g,
         c1.b * c2.b,
+    )
+end
+
+function max(c1::RGBf, c2::RGBf)::RGBf
+    RGBf(
+        max(c1.r, c2.r),
+        max(c1.g, c2.g),
+        max(c1.b, c2.b),
     )
 end
 
@@ -89,20 +97,18 @@ function march(
                 (distance_limit,),
             ))
 
-            reflected = BLACK
-            # reflected = march(
-            #     scene,
-            #     Ray(
-            #         ray.position,
-            #         reflect(norm, ray.direction)
-            #     );
-            #     reflection_limit=reflection_limit - 1,
-            #     distance_limit=distance_limit
-            # )
+            # reflected = BLACK
+            reflected = march(
+                scene,
+                Ray(
+                    ray.position,
+                    reflect(norm, ray.direction)
+                );
+                reflection_limit=reflection_limit - 1,
+                distance_limit=distance_limit
+            )
 
             return element.material * (shadow_rays + reflected + scene.ambient)
-            # TODO what is formula
-            # return reflected / 2 + shadow_ray_color / 2
         end
         ray.position += d * ray.direction
     end
@@ -119,6 +125,7 @@ function march(
     x, ymin, zmin = scene.camera.imagePlane.down_left
     _, ymax, zmax = scene.camera.imagePlane.top_right
     colors::Matrix{RGBf} = zeros(resolution[1], resolution[2])
+    max_colors::Vector{RGBf} = zeros(resolution[2])
 
     @threads for i in 0:resolution[2]-1
         z = zmin + (zmax-zmin)*i/(resolution[2]-1)
@@ -131,9 +138,15 @@ function march(
                 reflection_limit,
                 distance_limit,
             )
+            max_colors[i+1] = max(max_colors[i+1], colors[j+1, i+1])
         end
     end
 
+    max_color::RGBf = max(max_colors...)
+    max_val::Float64 = max(max_color.r, max_color.g, max_color.b)
+    if max_val > 1
+        colors ./= max_val
+    end
     return colors
 end
 
