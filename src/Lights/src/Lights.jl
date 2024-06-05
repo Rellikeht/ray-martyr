@@ -2,6 +2,8 @@ module Lights
 
 using Objects, Vectors
 import CairoMakie: RGBf
+import Base: *
+import Base.Threads: @threads
 
 export Ray, Frange
 export march
@@ -20,31 +22,28 @@ end
 
 function *(c1::RGBf, c2::RGBf)::RGBf
     RGBf(
-        c1.r*c2.r,
-        c1.g*c2.g,
-        c1.b*c2.b,
+        c1.r * c2.r,
+        c1.g * c2.g,
+        c1.b * c2.b,
     )
 end
 
 function shadowRay(
     scene::Scene,
     position::Vect,
+    normal::Vect,
     light::LightSource,
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::RGBf
-    dir::Vect = direction(position, light.position)
-    ray::Ray = Ray(position + distance_limit * dir, dir)
+    ray::Ray = Ray(position, direction(position, light.position))
+    ray.position += 2 * distance_limit * ray.direction
 
     while inside(scene.bounds, ray.position)
         d::Float64 = lightSdf(scene, ray.position)
         if d < distance_limit
-            closest = lightClosestElement(scene, ray.position)
-            if closest == light
+            if d == sdf(scene.lights, ray.position)
                 # TODO distance scaling
-                return light.intensity * max(
-                    0,
-                    ray.direction * normal(closest, ray.position)
-                )
+                return light.intensity * max(0, ray.direction * normal)
             else
                 return BLACK
             end
@@ -65,37 +64,34 @@ function march(
         return BLACK
     end
 
-    #     BOX_SIZE::Float64 = distance(
-    #         scene.bounds[1],
-    #         scene.bounds[2]
-    #     )
-    #     STARTING_POSITION::Vect = ray.position
-
     while inside(scene.bounds, ray.position)
         d::Float64 = sdf(scene, ray.position)
         if d < distance_limit
             norm = normal(scene, ray.position)
-            shadow_ray_color = shadowRay(
+            element = closestElement(scene, ray.position)
+            # TODO for all lights
+            shadow_rays = shadowRay(
                 scene,
                 ray.position,
+                norm,
                 scene.lights[1],
                 distance_limit
             )
 
-            #             reflected = march(
-            #                 scene,
-            #                 Ray(
-            #                     ray.position,
-            #                     reflect(norm, ray.direction)
-            #                 );
-            #                 reflection_limit=reflection_limit - 1,
-            #                 distance_limit=distance_limit
-            #             ) # * color
+            # reflected = march(
+            #     scene,
+            #     Ray(
+            #         ray.position,
+            #         reflect(norm, ray.direction)
+            #     );
+            #     reflection_limit=reflection_limit - 1,
+            #     distance_limit=distance_limit
+            # ) # * color
 
             # return RGBf(0.5 + norm[1] / 2, 0.5 + norm[2] / 2, 0.5 + norm[3] / 2)
-            return shadow_ray_color
+            return element.material * shadow_rays
+            # TODO what is formula
             # return reflected / 2 + shadow_ray_color / 2
-            # return RGBf(distance(STARTING_POSITION, ray.position) / BOX_SIZE * 2)
         end
         ray.position += d * ray.direction
     end
@@ -109,25 +105,25 @@ function march(
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::Matrix{RGBf}
-    _, ymin, zmin = scene.camera.imagePlane.down_left
+    x, ymin, zmin = scene.camera.imagePlane.down_left
     _, ymax, zmax = scene.camera.imagePlane.top_right
     colors::Matrix{RGBf} = zeros(resolution[1], resolution[2])
-    i::Int = 1
 
+    # TODO threads
+    i::Int = 0
     for z in Frange(zmin:(zmax-zmin)/(resolution[2]-1):zmax)
+        j::Int = 1
         for y in Frange(ymin:(ymax-ymin)/(resolution[1]-1):ymax)
-            p::Vect = Vect(scene.camera.imagePlane.top_right[1], y, z)
-            colors[i] = march(
+            p::Vect = Vect(x, y, z)
+            colors[i*resolution[1]+j] = march(
                 scene,
-                Ray(
-                    scene.camera.position,
-                    direction(scene.camera.position, p),
-                );
+                Ray(p, direction(scene.camera.position, p));
                 reflection_limit,
                 distance_limit,
             )
-            i += 1
+            j += 1
         end
+        i += 1
     end
 
     return colors

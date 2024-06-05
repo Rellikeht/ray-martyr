@@ -2,6 +2,7 @@ module Objects
 
 using Vectors
 import CairoMakie: RGBf
+import Base: *
 
 export AbstractObject, AbstractMesh, AbstractLightSource
 export Sphere, Cube
@@ -17,10 +18,10 @@ export DEFAULT_WORLD_BOUNDS, DEFAULT_EPS
 # )
 
 const DEFAULT_WORLD_BOUNDS = Bounds(
-    Vect(-5, 10, 10),
-    Vect(20, -10, -10),
+    Vect(-2, 20, 20),
+    Vect(25, -20, -20),
 )
-const DEFAULT_EPS = 1e-7
+const DEFAULT_EPS = 1e-6
 
 abstract type AbstractObject end
 abstract type AbstractMesh <: AbstractObject end
@@ -64,13 +65,15 @@ struct Cube <: AbstractMesh
         position::Vect,
         vertex::Vect
     ) = begin
-        new() # TODO
+        new() # TODO, will be tough
     end
 end
 
 function sdf(cube::Cube, vect::Vect)::Float64
     reduce(min, distance.(cube.verts, (vect,)))
 end
+
+# TODO cone and cyllinder
 
 struct Material
     red::Float64
@@ -91,6 +94,14 @@ struct Material
         end
         new(red, green, blue)
     end
+end
+
+function *(m::Material, c::RGBf)::RGBf
+    RGBf(c.r * m.red, c.g * m.green, c.b * m.blue)
+end
+
+function *(c::RGBf, m::Material)::RGBf
+    m * c
 end
 
 struct Solid <: AbstractObject
@@ -114,14 +125,12 @@ struct LightSource <: AbstractLightSource
         position::Vect=Vect(),
         intensity::RGBf=RGBf(1.0, 1.0, 1.0)
     ) = new(position, intensity)
-end
 
-# function LightSource(
-#         position::Vect=Vect(),
-#         intensity::Float64=0.0
-#     )::LightSource
-#     LightSource(position, RGBf(intensity, intensity, intensity))
-# end
+    LightSource(
+        position::Vect=Vect(),
+        intensity::Float64=0.0
+    ) = new(position, RGBf(intensity, intensity, intensity))
+end
 
 function sdf(s::LightSource, p::Vect)::Float64
     distance(s.position, p)
