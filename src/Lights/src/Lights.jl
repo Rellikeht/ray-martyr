@@ -18,6 +18,43 @@ mutable struct Ray
     direction::Vect
 end
 
+function *(c1::RGBf, c2::RGBf)::RGBf
+    RGBf(
+        c1.r*c2.r,
+        c1.g*c2.g,
+        c1.b*c2.b,
+    )
+end
+
+function shadowRay(
+    scene::Scene,
+    position::Vect,
+    light::LightSource,
+    distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
+)::RGBf
+    dir::Vect = direction(position, light.position)
+    ray::Ray = Ray(position + distance_limit * dir, dir)
+
+    while inside(scene.bounds, ray.position)
+        d::Float64 = lightSdf(scene, ray.position)
+        if d < distance_limit
+            closest = lightClosestElement(scene, ray.position)
+            if closest == light
+                # TODO distance scaling
+                return light.intensity * max(
+                    0,
+                    ray.direction * normal(closest, ray.position)
+                )
+            else
+                return BLACK
+            end
+        end
+        ray.position += d * ray.direction
+    end
+
+    return BLACK
+end
+
 function march(
     scene::Scene,
     ray::Ray;
@@ -37,43 +74,23 @@ function march(
     while inside(scene.bounds, ray.position)
         d::Float64 = sdf(scene, ray.position)
         if d < distance_limit
-            # norm = normal(scene, ray.position)
-
-            light::LightSource = scene.lights[1]
-            shadow_ray_direction = direction(ray.position, light.position)
-            shadow_ray = Ray(
-                ray.position + 2 * distance_limit * shadow_ray_direction,
-                shadow_ray_direction
+            norm = normal(scene, ray.position)
+            shadow_ray_color = shadowRay(
+                scene,
+                ray.position,
+                scene.lights[1],
+                distance_limit
             )
-            shadow_ray_color = RGBf(0)
-            while inside(scene.bounds, shadow_ray.position)
-                d = lightSdf(scene, shadow_ray.position)
-                if d < distance_limit / 10
-                    closest = lightClosestElement(scene, shadow_ray.position)
-                    if closest == light
-                        shadow_ray_color =
-                            light.intensity *
-                            abs(
-                                shadow_ray.direction *
-                                normal(closest, shadow_ray.position)
-                            )
-                    else
-                        shadow_ray_color = BLACK
-                    end
-                    break
-                end
-                shadow_ray.position += d * shadow_ray.direction
-            end
 
-            # reflected = march(
-            #     scene,
-            #     Ray(
-            #         ray.position,
-            #         reflect(norm, ray.direction)
-            #     );
-            #     reflection_limit=reflection_limit - 1,
-            #     distance_limit=distance_limit
-            # )
+            #             reflected = march(
+            #                 scene,
+            #                 Ray(
+            #                     ray.position,
+            #                     reflect(norm, ray.direction)
+            #                 );
+            #                 reflection_limit=reflection_limit - 1,
+            #                 distance_limit=distance_limit
+            #             ) # * color
 
             # return RGBf(0.5 + norm[1] / 2, 0.5 + norm[2] / 2, 0.5 + norm[3] / 2)
             return shadow_ray_color

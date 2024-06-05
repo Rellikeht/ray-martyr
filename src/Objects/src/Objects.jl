@@ -51,12 +51,20 @@ const cube_default = (x -> x ./ 2).((
 struct Cube <: AbstractMesh
     verts::NTuple{8,Vect}
     Cube(verts::NTuple{8,Vect}=cube_default) = new(verts)
+
     Cube(
         position::Vect,
         side::Float64=1.0
     ) = begin
         mult = (x -> x .* side).(cube_default)
         new(Tuple(mult[i] + position for i in eachindex(mult)))
+    end
+
+    Cube(
+        position::Vect,
+        vertex::Vect
+    ) = begin
+        new() # TODO
     end
 end
 
