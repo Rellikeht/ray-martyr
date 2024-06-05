@@ -5,23 +5,20 @@ import CairoMakie: RGBf
 import Base: *
 
 export AbstractObject, AbstractMesh, AbstractLightSource
-export Sphere, Cube
-export LightSource, Camera, Scene, Solid, Material
+export Sphere, Box
+export LightSource, Camera, Scene, Solid
+export Material, RGBf
 export normal
 export sdf, lightSdf
 export closestElement, lightClosestElement
-export DEFAULT_WORLD_BOUNDS, DEFAULT_EPS
-
-# const DEFAULT_WORLD_BOUNDS = Bounds(
-#     Vect(0, 100, 100),
-#     Vect(200, -100, -100),
-# )
+export DEFAULT_WORLD_BOUNDS, DEFAULT_EPS, DEFAULT_AMBIENT
 
 const DEFAULT_WORLD_BOUNDS = Bounds(
-    Vect(-2, 20, 20),
-    Vect(25, -20, -20),
+    Vect(-2, 24, 24),
+    Vect(24, -24, -24),
 )
 const DEFAULT_EPS = 1e-6
+const DEFAULT_AMBIENT = RGBf(0.05, 0.05, 0.05)
 
 abstract type AbstractObject end
 abstract type AbstractMesh <: AbstractObject end
@@ -38,39 +35,57 @@ function sdf(sphere::Sphere, vect::Vect)::Float64
     distance(sphere.position, vect) - sphere.radius
 end
 
-const cube_default = (x -> x ./ 2).((
-    (1.0, 1.0, 1.0),
-    (-1.0, 1.0, 1.0),
-    (1.0, -1.0, 1.0),
-    (1.0, 1.0, -1.0),
-    (-1.0, -1.0, 1.0),
-    (-1.0, 1.0, -1.0),
-    (1.0, -1.0, -1.0),
-    (-1.0, -1.0, -1.0),
-))
+struct Box <: AbstractMesh
+    center::Vect
+    sizes::NTuple{3,Float64}
 
-struct Cube <: AbstractMesh
-    verts::NTuple{8,Vect}
-    Cube(verts::NTuple{8,Vect}=cube_default) = new(verts)
+    Box(
+        center::Vect=Vect,
+        sizes::Tuple{T1,T2,T3}=(1, 1, 1)
+    ) where {
+        T1<:IntOrFloat,
+        T2<:IntOrFloat,
+        T3<:IntOrFloat,
+    } = new(center, sizes)
 
-    Cube(
+    Box(
         position::Vect,
-        side::Float64=1.0
-    ) = begin
-        mult = (x -> x .* side).(cube_default)
-        new(Tuple(mult[i] + position for i in eachindex(mult)))
-    end
-
-    Cube(
-        position::Vect,
-        vertex::Vect
-    ) = begin
-        new() # TODO, will be tough
-    end
+        side::IntOrFloat
+    ) = new(position, (side, side, side))
 end
 
-function sdf(cube::Cube, vect::Vect)::Float64
-    reduce(min, distance.(cube.verts, (vect,)))
+function distBetween(
+    ab::Tuple{Float64,Float64},
+    p::Float64,
+)::Float64
+    va = ab[1] - p
+    vb = p - ab[2]
+    if abs(va) > abs(vb)
+        return vb
+    end
+    return va
+end
+
+function inside(b::Box, v::Vect)::Bool
+    for i in 1:3
+        if v[i] < b.center[i] - b.sizes[i] / 2 ||
+           v[i] > b.center[i] + b.sizes[i] / 2
+            return false
+        end
+    end
+    return true
+end
+
+function sdf(box::Box, vect::Vect)::Float64
+    verts::NTuple{3,NTuple{2,Float64}} = (
+        (x, s) -> (x - s / 2, x + s / 2)
+    ).(box.center, box.sizes)
+    # result::Float64 = sqrt(sum((distBetween.(verts, vect)).^2))
+
+    if inside(box, vect)
+        return -sqrt(sum((distBetween.(verts, vect)) .^ 2))
+    end
+    return sqrt(sum(max.(distBetween.(verts, vect), 0) .^ 2))
 end
 
 # TODO cone and cyllinder
@@ -125,12 +140,15 @@ struct LightSource <: AbstractLightSource
         position::Vect=Vect(),
         intensity::RGBf=RGBf(1.0, 1.0, 1.0)
     ) = new(position, intensity)
-
-    LightSource(
-        position::Vect=Vect(),
-        intensity::Float64=0.0
-    ) = new(position, RGBf(intensity, intensity, intensity))
 end
+
+LightSource(
+    position::Vect,
+    intensity::Float64
+) = LightSource(
+    position,
+    RGBf(intensity, intensity, intensity)
+)
 
 function sdf(s::LightSource, p::Vect)::Float64
     distance(s.position, p)
@@ -153,13 +171,15 @@ struct Scene
     bounds::Bounds
     lights::Vector{AbstractLightSource}
     solids::Vector{Solid}
+    ambient::RGBf
     Scene(
         camera::Camera=Camera(),
         bounds::Bounds=DEFAULT_WORLD_BOUNDS,
         lights::Vector{L}=[],
         solids::Vector{Solid}=[],
+        ambient::RGBf=DEFAULT_AMBIENT,
     ) where {L<:AbstractLightSource} =
-        new(camera, bounds, lights, solids)
+        new(camera, bounds, lights, solids, ambient)
 end
 
 function sdf(
@@ -239,7 +259,7 @@ let
     ppoint = Vect(4, 2, 0)
     psolid = [
         Solid(Sphere(Vect(1, 2, 3), 2.0)),
-        Solid(Cube(Vect(4, 5, 6), 3.0))
+        Solid(Box(Vect(4, 5, 6), 3.0))
     ]
 
     for s in psolid

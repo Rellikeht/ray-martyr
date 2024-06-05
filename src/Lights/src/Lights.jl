@@ -1,7 +1,6 @@
 module Lights
 
 using Objects, Vectors
-import CairoMakie: RGBf
 import Base: *
 import Base.Threads: @threads
 
@@ -28,10 +27,11 @@ function *(c1::RGBf, c2::RGBf)::RGBf
     )
 end
 
-function scaleDistance(
+function scale(
     distance::Float64,
 )
     # TODO
+    1.0
 end
 
 function shadowRay(
@@ -42,22 +42,20 @@ function shadowRay(
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::RGBf
     ray::Ray = Ray(position, direction(position, light.position))
-    # FUCK
-    ray.position += 5 * distance_limit * ray.direction
-
-    # Works
-    # return light.intensity * max(0, ray.direction * normal)
-    # so problem is below
+    # values were essentially guessed, they look
+    # reasonably well
+    ray.position += 4 * distance_limit * ray.direction
 
     while inside(scene.bounds, ray.position)
         d::Float64 = min(
             sdf(scene, ray.position),
             sdf(light, ray.position)
         )
-        if d < distance_limit
+        if d < distance_limit / 5
             if d == sdf(light, ray.position)
-                # TODO distance scaling
-                return light.intensity * max(0, ray.direction * normal)
+                return light.intensity *
+                       max(0, ray.direction * normal) *
+                       scale(distance(position, ray.position))
             else
                 return BLACK
             end
@@ -83,15 +81,15 @@ function march(
         if d < distance_limit
             norm = normal(scene, ray.position)
             element = closestElement(scene, ray.position)
-            # TODO for all lights
-            shadow_rays = shadowRay(
-                scene,
-                ray.position,
-                norm,
-                scene.lights[1],
-                distance_limit
-            )
+            shadow_rays = sum(shadowRay.(
+                (scene,),
+                (ray.position,),
+                (norm,),
+                scene.lights,
+                (distance_limit,),
+            ))
 
+            reflected = BLACK
             # reflected = march(
             #     scene,
             #     Ray(
@@ -100,10 +98,9 @@ function march(
             #     );
             #     reflection_limit=reflection_limit - 1,
             #     distance_limit=distance_limit
-            # ) # * color
+            # )
 
-            # return RGBf(0.5 + norm[1] / 2, 0.5 + norm[2] / 2, 0.5 + norm[3] / 2)
-            return element.material * shadow_rays
+            return element.material * (shadow_rays + reflected + scene.ambient)
             # TODO what is formula
             # return reflected / 2 + shadow_ray_color / 2
         end
@@ -146,7 +143,7 @@ end
 let
     psolid = [
         Solid(Sphere(Vect(1, 2, 3), 2.0)),
-        Solid(Cube(Vect(4, 5, 6), 3.0))
+        Solid(Box(Vect(4, 5, 6), 3.0))
     ]
 
     pcam = Camera()
@@ -157,6 +154,7 @@ let
         psolid
     )
 
+    _ = scale(1.0)
     _ = march(pscene, Ray((0, 0, 0), (1, 0, 0)); reflection_limit=1)
     _ = march(pscene, Ray((0, 0, 0), (1, 1, 0)); reflection_limit=2)
     _ = march(pscene, (20, 10); reflection_limit=3)

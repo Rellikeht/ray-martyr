@@ -1,6 +1,3 @@
-# using GLMakie
-# GLMakie.activate!()
-
 module March
 using Lights
 export FHD, HD
@@ -9,7 +6,7 @@ export initMscene, render!
 using CairoMakie
 CairoMakie.activate!()
 import Lights: Scene, Camera
-import Objects: Sphere
+import Objects: Sphere, Box
 
 const FHD = (1920, 1080)
 const HD = (1280, 720)
@@ -39,16 +36,7 @@ function render!(
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
 )
     scx::Int, scy::Int = size(mscene)
-    # println(scx)
-    # println(scy)
-    px = march(
-        scene,
-        (scx, scy);
-        reflection_limit=reflection_limit
-    )
-    # println(px)
-    Makie.image!(mscene, px)
-    # Makie.image!(mscene, march(scene, (scx, scy), reflection_limit))
+    Makie.image!(mscene, march(scene, (scx, scy); reflection_limit))
 end
 
 # function main()::Scene
@@ -63,7 +51,7 @@ let
 
     psolid = [
         Solid(Sphere(Vect(1, 2, 3), 2.0)),
-        Solid(Cube(Vect(4, 5, 6), 3.0))
+        Solid(Box(Vect(4, 5, 6), 3.0))
     ]
 
     pcam = Camera()
