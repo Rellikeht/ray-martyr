@@ -11,7 +11,7 @@ export BLACK, DEFAULT_DISTANCE_LIMIT, DEFAULT_REFLECTION_LIMIT
 
 const Frange = StepRangeLen{Float64,Float64,Float64,Int}
 
-const DEFAULT_DISTANCE_LIMIT = 0.01
+const DEFAULT_DISTANCE_LIMIT = 0.001
 const DEFAULT_REFLECTION_LIMIT = 1
 const BLACK = RGBf(0.0, 0.0, 0.0)
 
@@ -28,6 +28,12 @@ function *(c1::RGBf, c2::RGBf)::RGBf
     )
 end
 
+function scaleDistance(
+    distance::Float64,
+)
+    # TODO
+end
+
 function shadowRay(
     scene::Scene,
     position::Vect,
@@ -36,12 +42,20 @@ function shadowRay(
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::RGBf
     ray::Ray = Ray(position, direction(position, light.position))
-    ray.position += 2 * distance_limit * ray.direction
+    # FUCK
+    ray.position += 5 * distance_limit * ray.direction
+
+    # Works
+    # return light.intensity * max(0, ray.direction * normal)
+    # so problem is below
 
     while inside(scene.bounds, ray.position)
-        d::Float64 = lightSdf(scene, ray.position)
+        d::Float64 = min(
+            sdf(scene, ray.position),
+            sdf(light, ray.position)
+        )
         if d < distance_limit
-            if d == sdf(scene.lights, ray.position)
+            if d == sdf(light, ray.position)
                 # TODO distance scaling
                 return light.intensity * max(0, ray.direction * normal)
             else
