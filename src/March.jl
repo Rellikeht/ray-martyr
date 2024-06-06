@@ -32,11 +32,20 @@ end
 
 function render!(
     mscene::Makie.Scene,
-    scene::Scene,
+    scene::Scene;
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
+    distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )
     scx::Int, scy::Int = size(mscene)
-    Makie.image!(mscene, march(scene, (scx, scy); reflection_limit))
+    Makie.image!(
+        mscene,
+        march(
+            scene,
+            (scx, scy);
+            distance_limit=distance_limit,
+            reflection_limit=reflection_limit
+        )
+    )
 end
 
 # function main()::Scene

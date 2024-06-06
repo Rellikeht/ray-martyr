@@ -12,7 +12,7 @@ export BLACK, DEFAULT_DISTANCE_LIMIT, DEFAULT_REFLECTION_LIMIT
 const Frange = StepRangeLen{Float64,Float64,Float64,Int}
 
 const DEFAULT_DISTANCE_LIMIT = 1e-2
-const DEFAULT_REFLECTION_LIMIT = 2
+const DEFAULT_REFLECTION_LIMIT = 3
 const BLACK = RGBf(0.0, 0.0, 0.0)
 
 mutable struct Ray
@@ -98,11 +98,12 @@ function march(
                 (distance_limit,),
             ))
 
+            reflected_direction::Vect = reflect(norm, ray.direction)
             reflected = march(
                 scene,
                 Ray(
-                    ray.position,
-                    reflect(norm, ray.direction)
+                    ray.position + distance_limit * reflected_direction,
+                    reflected_direction
                 );
                 reflection_limit=reflection_limit - 1,
                 distance_limit=distance_limit
