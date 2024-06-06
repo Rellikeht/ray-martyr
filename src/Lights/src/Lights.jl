@@ -2,6 +2,7 @@ module Lights
 
 using Objects, Vectors
 import Base: max
+import Base: *
 import Base.Threads: @threads
 
 export Ray, Frange
@@ -10,8 +11,8 @@ export BLACK, DEFAULT_DISTANCE_LIMIT, DEFAULT_REFLECTION_LIMIT
 
 const Frange = StepRangeLen{Float64,Float64,Float64,Int}
 
-const DEFAULT_DISTANCE_LIMIT = 1e-3
-const DEFAULT_REFLECTION_LIMIT = 1
+const DEFAULT_DISTANCE_LIMIT = 1e-2
+const DEFAULT_REFLECTION_LIMIT = 2
 const BLACK = RGBf(0.0, 0.0, 0.0)
 
 mutable struct Ray
@@ -52,14 +53,14 @@ function shadowRay(
     ray::Ray = Ray(position, direction(position, light.position))
     # values were essentially guessed, they look
     # reasonably well
-    ray.position += 5 * distance_limit * ray.direction
+    ray.position += 8 * distance_limit * ray.direction
 
     while inside(scene.bounds, ray.position)
         d::Float64 = min(
             sdf(scene, ray.position),
             sdf(light, ray.position)
         )
-        if d < distance_limit / 5
+        if d < distance_limit / 2
             if d == sdf(light, ray.position)
                 return light.intensity *
                        max(0, ray.direction * normal) *
@@ -97,7 +98,6 @@ function march(
                 (distance_limit,),
             ))
 
-            # reflected = BLACK
             reflected = march(
                 scene,
                 Ray(
@@ -122,23 +122,28 @@ function march(
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::Matrix{RGBf}
-    x, ymin, zmin = scene.camera.imagePlane.down_left
-    _, ymax, zmax = scene.camera.imagePlane.top_right
+    scene_sizes::Vect = Vect(
+        0,
+        scene.camera.plane_width / 2,
+        scene.camera.plane_height / 2,
+    )
+    vmin::Vect = scene.camera.plane_center - scene_sizes
+    vmax::Vect = scene.camera.plane_center + scene_sizes
     colors::Matrix{RGBf} = zeros(resolution[1], resolution[2])
     max_colors::Vector{RGBf} = zeros(resolution[2])
 
-    @threads for i in 0:resolution[2]-1
-        z = zmin + (zmax-zmin)*i/(resolution[2]-1)
-        for j in 0:resolution[1]-1
-            y = ymin + (ymax-ymin)*j/(resolution[1]-1)
-            p::Vect = Vect(x, y, z)
-            colors[j+1, i+1] = march(
+    @threads for i in 1:resolution[2]
+        z = vmin[3] + (vmax[3] - vmin[3]) * (i - 1) / (resolution[2] - 1)
+        for j in 1:resolution[1]
+            y = vmin[2] + (vmax[2] - vmin[2]) * (j - 1) / (resolution[1] - 1)
+            p::Vect = Vect(vmin[1], y, z)
+            colors[j, i] = march(
                 scene,
                 Ray(p, direction(scene.camera.position, p));
                 reflection_limit,
                 distance_limit,
             )
-            max_colors[i+1] = max(max_colors[i+1], colors[j+1, i+1])
+            max_colors[i] = max(max_colors[i], colors[j, i])
         end
     end
 

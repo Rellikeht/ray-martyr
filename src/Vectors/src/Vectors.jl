@@ -2,7 +2,7 @@ module Vectors
 
 import Base: rand, zero, +, -, *, /
 
-export Vect, IntOrFloat, Bounds, Plane
+export Vect, IntOrFloat, Bounds
 export normalize, distance, reflect
 export inside, direction, rand
 export +, -, *, /
@@ -129,18 +129,6 @@ function inside(b::Bounds, v::Vect)::Bool
         end
     end
     return true
-end
-
-# Plane
-
-# TODO proper plane
-struct Plane
-    top_right::Vect
-    down_left::Vect
-    Plane(
-        top_right::Vect=Vect(0, -1, -1),
-        down_left::Vect=Vect(0, 1, 1)
-    ) = new(top_right, down_left)
 end
 
 # Precompilation

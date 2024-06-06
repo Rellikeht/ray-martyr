@@ -155,14 +155,16 @@ end
 
 struct Camera
     position::Vect
-    imagePlane::Plane
+    plane_center::Vect
+    plane_width::Float64
+    plane_height::Float64
+
     Camera(
         position::Vect=Vect(-1, 0, 0),
-        plane::Plane=Plane(
-            Vect(0.0, -1.6, -0.9),
-            Vect(0.0, 1.6, 0.9),
-        ),
-    ) = new(position, plane)
+        plane_center::Vect=Vect(0, 0, 0),
+        plane_width::Float64=3.2,
+        plane_height::Float64=1.8,
+    ) = new(position, plane_center, plane_width, plane_height)
 end
 
 struct Scene
