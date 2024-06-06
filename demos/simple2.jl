@@ -10,12 +10,10 @@ solids = [
             RGBf(0.1, 1.0, 0.7),
         )
     ),
-    # Solid(Box(Vect(12, -2, 6.5), 5.0), Material(1.0, 1.0, 1.0)),
     Solid(Box(Vect(8, 0, -6), (30, 30, 0.5)), Material(1.0, 1.0, 1.0)),
 ]
 lights = [
     LightSource(Vect(1.5, 3, 1.5), RGBf(1.0, 0.7, 1.0)),
-    # LightSource(Vect(15, 4, -1), RGBf(1.0, 1.0, 1.0)),
 ]
 scene = Scene(
     cam,

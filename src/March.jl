@@ -1,6 +1,6 @@
 module March
 using Lights
-export FHD, HD
+export FHD, HD, QHD, K4
 export initMscene, render!
 
 using CairoMakie
@@ -8,15 +8,18 @@ CairoMakie.activate!()
 import Lights: Scene, Camera
 import Objects: Sphere, Box
 
+const K4 = (3840, 2160)
+const QHD = (2560, 1440)
 const FHD = (1920, 1080)
 const HD = (1280, 720)
+const SD = (640, 480)
 
 # Scene from GLMakie refuses to work
 # using GLMakie
 # GLMakie.activate!()
 
 function initMscene(
-    size::Tuple{Int,Int}=FHD,
+    size::Tuple{Int,Int}=SD,
     background::Union{String,Symbol}=:black
 )::Makie.Scene
     scene::Makie.Scene = Makie.Scene(
@@ -47,12 +50,6 @@ function render!(
         )
     )
 end
-
-# function main()::Scene
-#     scene = initScene()
-#     render!(scene)
-#     return scene
-# end
 
 let
     using Objects, Vectors

@@ -109,10 +109,10 @@ function march(
                 distance_limit=distance_limit
             )
 
+            # TODO shininess
             return element.material.ambient * scene.ambient +
                    element.material.diffuse * shadow_rays +
                    element.material.specular * reflected
-            # * (shadow_rays + reflected + scene.ambient)
         end
         ray.position += d * ray.direction
     end
@@ -122,7 +122,7 @@ end
 
 function march(
     scene::Scene,
-    resolution::Tuple{Int,Int}=(640, 480);
+    resolution::Tuple{Int,Int}=SD;
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::Matrix{RGBf}
