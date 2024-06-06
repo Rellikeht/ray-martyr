@@ -108,7 +108,10 @@ function march(
                 distance_limit=distance_limit
             )
 
-            return element.material * (shadow_rays + reflected + scene.ambient)
+            return element.material.ambient * scene.ambient +
+                   element.material.diffuse * shadow_rays +
+                   element.material.specular * reflected
+            # * (shadow_rays + reflected + scene.ambient)
         end
         ray.position += d * ray.direction
     end

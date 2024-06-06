@@ -11,14 +11,23 @@ export Material, RGBf
 export normal
 export sdf, lightSdf
 export closestElement, lightClosestElement
-export DEFAULT_WORLD_BOUNDS, DEFAULT_EPS, DEFAULT_AMBIENT
+export DEFAULT_WORLD_BOUNDS, DEFAULT_EPS, DEFAULT_AMBIENT_LIGHT
+
+export DEFAULT_AMBIENT_MATERIAL
+export DEFAULT_SPECULAR_MATERIAL
+export DEFAULT_DIFFUSE_MATERIAL
+export DEFAULT_SHININESS
 
 const DEFAULT_WORLD_BOUNDS = Bounds(
     Vect(-2, 24, 24),
     Vect(24, -24, -24),
 )
 const DEFAULT_EPS = 1e-6
-const DEFAULT_AMBIENT = RGBf(0.05, 0.05, 0.05)
+const DEFAULT_AMBIENT_LIGHT = RGBf(0.05, 0.05, 0.05)
+const DEFAULT_AMBIENT_MATERIAL = RGBf(1.0)
+const DEFAULT_SPECULAR_MATERIAL = RGBf(1.0)
+const DEFAULT_DIFFUSE_MATERIAL = RGBf(1.0)
+const DEFAULT_SHININESS = 1
 
 abstract type AbstractObject end
 abstract type AbstractMesh <: AbstractObject end
@@ -90,32 +99,38 @@ end
 # TODO cone and cyllinder
 
 struct Material
-    red::Float64
-    green::Float64
-    blue::Float64
+    ambient::RGBf
+    diffuse::RGBf
+    specular::RGBf
+    shininess::Float64
 
     Material(
-        red::Float64=0.5,
-        green::Float64=0.5,
-        blue::Float64=0.5,
+        ambient::RGBf=DEFAULT_AMBIENT_MATERIAL,
+        diffuse::RGBf=DEFAULT_DIFFUSE_MATERIAL,
+        specular::RGBf=DEFAULT_SPECULAR_MATERIAL,
+        shininess::IntOrFloat=DEFAULT_SHININESS,
     ) = begin
-        if red < 0.0 || red > 1.0
-            throw(ArgumentError("Invalid red value"))
-        elseif green < 0.0 || green > 1.0
-            throw(ArgumentError("Invalid green value"))
-        elseif blue < 0.0 || blue > 1.0
-            throw(ArgumentError("Invalid blue value"))
+        if shininess < 0
+            throw(ArgumentError("Invalid shininess value"))
         end
-        new(red, green, blue)
+        for c in [ambient, diffuse, specular]
+            if c.r < 0.0 || c.r > 1.0
+                throw(ArgumentError("Invalid red value"))
+            elseif c.g < 0.0 || c.g > 1.0
+                throw(ArgumentError("Invalid green value"))
+            elseif c.b < 0.0 || c.b > 1.0
+                throw(ArgumentError("Invalid blue value"))
+            end
+        end
+        new(ambient, diffuse, specular, shininess)
     end
-end
 
-function *(m::Material, c::RGBf)::RGBf
-    RGBf(c.r * m.red, c.g * m.green, c.b * m.blue)
-end
-
-function *(c::RGBf, m::Material)::RGBf
-    m * c
+    Material(
+        ambient::Float64,
+        diffuse::Float64,
+        specular::Float64,
+        shininess::IntOrFloat=DEFAULT_SHININESS,
+    ) = new(RGBf(ambient), RGBf(diffuse), RGBf(specular), shininess)
 end
 
 struct Solid <: AbstractObject
@@ -178,7 +193,7 @@ struct Scene
         bounds::Bounds=DEFAULT_WORLD_BOUNDS,
         lights::Vector{L}=[],
         solids::Vector{Solid}=[],
-        ambient::RGBf=DEFAULT_AMBIENT,
+        ambient::RGBf=DEFAULT_AMBIENT_LIGHT,
     ) where {L<:AbstractLightSource} =
         new(camera, bounds, lights, solids, ambient)
 end
