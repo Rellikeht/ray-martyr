@@ -50,7 +50,11 @@ function shadowRay(
     light::LightSource,
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::RGBf
+    # TODO optimize phong reflection
     ray::Ray = Ray(position, direction(position, light.position))
+    if ray.direction * normal <= 0
+        return BLACK
+    end
     # values were essentially guessed, they look
     # reasonably well
     ray.position += 8 * distance_limit * ray.direction
@@ -62,8 +66,8 @@ function shadowRay(
         )
         if d < distance_limit / 2
             if d == sdf(light, ray.position)
-                return light.intensity *
-                       max(0, ray.direction * normal) *
+                return (ray.direction * normal) *
+                       light.intensity *
                        scale(distance(position, ray.position))
             else
                 return BLACK
@@ -88,9 +92,9 @@ function march(
     while inside(scene.bounds, ray.position)
         d::Float64 = sdf(scene, ray.position)
         if d < distance_limit
-            norm = normal(scene, ray.position)
-            element = closestElement(scene, ray.position)
-            shadow_rays = sum(shadowRay.(
+            element::Solid = closestElement(scene, ray.position)
+            norm::Vect = normal(element, ray.position)
+            shadow_rays::RGBf = sum(shadowRay.(
                 (scene,),
                 (ray.position,),
                 (norm,),
@@ -99,7 +103,7 @@ function march(
             ))
 
             reflected_direction::Vect = reflect(norm, ray.direction)
-            reflected = march(
+            reflected::RGBf = march(
                 scene,
                 Ray(
                     ray.position + distance_limit * reflected_direction,
@@ -109,7 +113,7 @@ function march(
                 distance_limit=distance_limit
             )
 
-            # TODO shininess
+            # TODO shininess (with optimization)
             return element.material.ambient * scene.ambient +
                    element.material.diffuse * shadow_rays +
                    element.material.specular * reflected

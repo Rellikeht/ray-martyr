@@ -224,12 +224,8 @@ function lightSdf(scene, pos::Vect)::Float64
     min(sdf(scene, pos), sdf(scene.lights, pos))
 end
 
-function closestLight(scene::Scene, pos::Vect)::LightSource
-    scene.lights[argmin(sdf.(scene.lights, (pos,)))]
-end
-
 function lightClosestElement(scene::Scene, pos::Vect)::AbstractObject
-    clight = closestLight(scene, pos)
+    clight = closestElement(scene.lights, pos)
     csolid = closestElement(scene, pos)
     if sdf(clight, pos) < sdf(csolid, pos)
         return clight
@@ -238,7 +234,7 @@ function lightClosestElement(scene::Scene, pos::Vect)::AbstractObject
 end
 
 function normal(
-    object::AbstractObject,
+    object::Union{AbstractObject,Scene},
     position::Vect,
     eps::Float64=DEFAULT_EPS,
 )::Vect
@@ -250,23 +246,6 @@ function normal(
             sdf(object, position - Vect(0.0, eps, 0.0)),
             sdf(object, position + Vect(0.0, 0.0, eps)) -
             sdf(object, position - Vect(0.0, 0.0, eps)),
-        )
-    )
-end
-
-function normal(
-    scene::Scene,
-    position::Vect,
-    eps::Float64=DEFAULT_EPS,
-)::Vect
-    normalize(
-        Vect(
-            sdf(scene, position + Vect(eps, 0.0, 0.0)) -
-            sdf(scene, position - Vect(eps, 0.0, 0.0)),
-            sdf(scene, position + Vect(0.0, eps, 0.0)) -
-            sdf(scene, position - Vect(0.0, eps, 0.0)),
-            sdf(scene, position + Vect(0.0, 0.0, eps)) -
-            sdf(scene, position - Vect(0.0, 0.0, eps)),
         )
     )
 end
@@ -297,7 +276,6 @@ let
     _ = sdf(pscene.lights, ppoint)
     _ = closestElement(pscene, ppoint)
     _ = closestElement(pscene.lights, ppoint)
-    _ = closestLight(pscene, ppoint)
     _ = lightClosestElement(pscene, ppoint)
 end
 

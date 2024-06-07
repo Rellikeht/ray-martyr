@@ -1,7 +1,7 @@
 using March, Objects, Vectors
 cam = Camera()
 
-solids = [
+solids::Vector{Solid} = [
     Solid(
         Sphere(Vect(4.0, -2, -0.5), 0.5),
         Material(
@@ -22,12 +22,12 @@ solids = [
     ),
 ]
 
-lights = [
+lights::Vector{LightSource} = [
     LightSource(Vect(1.5, 3, 1.5), RGBf(1.0, 1.0, 1.0)),
     LightSource(Vect(8, 4, 1), RGBf(0.0, 0.2, 0.6)),
 ]
 
-scene = Scene(
+scene::Scene = Scene(
     cam,
     DEFAULT_WORLD_BOUNDS,
     lights,
