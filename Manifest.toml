@@ -2,7 +2,7 @@
 
 julia_version = "1.10.5"
 manifest_format = "2.0"
-project_hash = "a075b42dc89478822fc349f75bde42479f880a7a"
+project_hash = "bce79542aba3c4416757bf7b81f9e75406032205"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1118,6 +1118,11 @@ version = "0.1.3"
 
 [[deps.Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
+
+[[deps.Solids]]
+path = "src/Solids"
+uuid = "373edf9a-1ed1-4f42-8f3e-fe48c9356993"
+version = "0.1.0"
 
 [[deps.SortingAlgorithms]]
 deps = ["DataStructures"]

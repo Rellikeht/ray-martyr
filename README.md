@@ -1,7 +1,14 @@
 # ray-martyr
 
-Basic ray marching implementation with Phong lighting model.
+## What is all of this
 
-It isn't the fastest, but can render the mirrors
+Implementation of ray marching using Phong lighting model.
+
+Renders mirrors correctly
 
 ![Mirror example](achievements/mirror4k.png)
+
+## TODO
+
+- transparency
+- solids given by mathematical equations
