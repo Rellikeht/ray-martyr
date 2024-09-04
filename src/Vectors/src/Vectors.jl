@@ -1,5 +1,7 @@
 module Vectors
 
+# import-export {{{
+
 import Base: rand, zero, +, -, *, /
 
 export Vect, IntOrFloat, Bounds
@@ -7,9 +9,15 @@ export normalize, distance, reflect
 export inside, direction, rand
 export +, -, *, /
 
+#= }}}=#
+
+# consts {{{
+
 const IntOrFloat = Union{Int,Float64}
 
-# Vectors
+#= }}}=#
+
+# Vect {{{
 
 const Vect = NTuple{3,Float64}
 
@@ -27,6 +35,10 @@ function zero(::T)::Vect where {T<:Union{Vect,Type{Vect}}}
     Vect()
 end
 
+#= }}}=#
+
+# simple operations {{{
+
 function +(v1::Vect, v2::Vect)::Vect
     v1 .+ v2
 end
@@ -43,6 +55,10 @@ end
 function /(v::Vect, n::T)::Vect where {T<:IntOrFloat}
     v ./ n
 end
+
+#= }}}=#
+
+# additional perations {{{
 
 # Dot product
 function *(v1::Vect, v2::Vect)::Float64
@@ -81,7 +97,9 @@ function rand(::Type{Vect}, r::AbstractRange{Float64})
     (rand(r), rand(r), rand(r))
 end
 
-# Bounds
+#= }}}=#
+
+# Bounds {{{
 
 const Bounds = Tuple{NTuple{3,IntOrFloat},NTuple{3,IntOrFloat}}
 
@@ -122,6 +140,10 @@ function Bounds(p1::Vect, p2::Vect)::Bounds
     )
 end
 
+#= }}}=#
+
+# Bounds operations {{{
+
 function inside(b::Bounds, v::Vect)::Bool
     @simd for i in 1:3
         if v[i] < b[1][i] || v[i] > b[2][i]
@@ -131,9 +153,9 @@ function inside(b::Bounds, v::Vect)::Bool
     return true
 end
 
-# Precompilation
+#= }}}=#
 
-let
+let # precompilation {{{
     pcv1, pcv2 = Vect(1, 2, 3), Vect(2, 4, 8)
 
     _ = pcv1 + pcv2
@@ -152,6 +174,6 @@ let
     _ = direction(pcv1, pcv2)
     _ = inside((pcv1, pcv2), Vect())
     _ = rand(Vect, -1:0.1:1)
-end
+end#= }}}=#
 
 end

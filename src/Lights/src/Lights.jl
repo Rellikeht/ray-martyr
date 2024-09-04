@@ -1,6 +1,8 @@
 module Lights
 
-using Objects, Vectors
+# import-export {{{
+
+using Objects, Meshes, Vectors
 import Base: max
 import Base: *
 import Base.Threads: @threads
@@ -9,16 +11,28 @@ export Ray, Frange
 export march
 export BLACK, DEFAULT_DISTANCE_LIMIT, DEFAULT_REFLECTION_LIMIT
 
+#= }}}=#
+
+# consts {{{
+
 const Frange = StepRangeLen{Float64,Float64,Float64,Int}
 
 const DEFAULT_DISTANCE_LIMIT = 1e-2
 const DEFAULT_REFLECTION_LIMIT = 3
 const BLACK = RGBf(0.0, 0.0, 0.0)
 
+#= }}}=#
+
+# types {{{
+
 mutable struct Ray
     position::Vect
     direction::Vect
 end
+
+#= }}}=#
+
+# helpers {{{
 
 function *(c1::RGBf, c2::RGBf)::RGBf
     RGBf(
@@ -43,6 +57,8 @@ function scale(
     1.0
 end
 
+#= }}}=#
+
 function shadowRay(
     scene::Scene,
     position::Vect,
@@ -50,6 +66,7 @@ function shadowRay(
     light::LightSource,
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::RGBf
+#= {{{=#
     # TODO optimize phong reflection
     ray::Ray = Ray(position, direction(position, light.position))
     if ray.direction * normal <= 0
@@ -77,7 +94,7 @@ function shadowRay(
     end
 
     return BLACK
-end
+end#= }}}=#
 
 function march(
     scene::Scene,
@@ -85,6 +102,7 @@ function march(
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::RGBf
+        #= {{{=#
     if reflection_limit < 0
         return BLACK
     end
@@ -122,7 +140,7 @@ function march(
     end
 
     return BLACK
-end
+end#= }}}=#
 
 function march(
     scene::Scene,
@@ -130,6 +148,7 @@ function march(
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
     distance_limit::Float64=DEFAULT_DISTANCE_LIMIT,
 )::Matrix{RGBf}
+    #= {{{=#
     scene_sizes::Vect = Vect(
         0,
         scene.camera.plane_width / 2,
@@ -161,9 +180,9 @@ function march(
         colors ./= max_val
     end
     return colors
-end
+end #= }}}=#
 
-let
+let # precompilation {{{
     psolid = [
         Solid(Sphere(Vect(1, 2, 3), 2.0)),
         Solid(Box(Vect(4, 5, 6), 3.0))
@@ -181,6 +200,6 @@ let
     _ = march(pscene, Ray((0, 0, 0), (1, 0, 0)); reflection_limit=1)
     _ = march(pscene, Ray((0, 0, 0), (1, 1, 0)); reflection_limit=2)
     _ = march(pscene, (20, 10); reflection_limit=3)
-end
+end#= }}}=#
 
 end

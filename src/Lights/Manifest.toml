@@ -2,7 +2,7 @@
 
 julia_version = "1.10.5"
 manifest_format = "2.0"
-project_hash = "ba2c4b546fa05204a634369c183eb0821df7360c"
+project_hash = "cdb4d14f37a1ab2b3aa8846df62f106d698c6532"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -746,6 +746,12 @@ deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 version = "2.28.2+1"
 
+[[deps.Meshes]]
+deps = ["Vectors"]
+path = "../Meshes"
+uuid = "394f185c-2c5c-4b8b-88f8-d13df361db0e"
+version = "0.1.0"
+
 [[deps.Missings]]
 deps = ["DataAPI"]
 git-tree-sha1 = "ec4f7fbeab05d7747bdf98eb74d130a2a2ed298d"
@@ -782,7 +788,7 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.2.0"
 
 [[deps.Objects]]
-deps = ["CairoMakie", "Vectors"]
+deps = ["CairoMakie", "Meshes", "Vectors"]
 path = "../Objects"
 uuid = "62ecdadc-e19b-4eca-b0de-2efed354d683"
 version = "0.1.0"

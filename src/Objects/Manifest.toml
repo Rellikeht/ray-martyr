@@ -2,7 +2,7 @@
 
 julia_version = "1.10.5"
 manifest_format = "2.0"
-project_hash = "c527efe03e1c2beb1e65cd9a96d20af9d4cba740"
+project_hash = "b1b2afe0b39d80d1a0b4fd56189420e9a6b8b608"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -745,6 +745,12 @@ version = "0.6.1"
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 version = "2.28.2+1"
+
+[[deps.Meshes]]
+deps = ["Vectors"]
+path = "../Meshes"
+uuid = "394f185c-2c5c-4b8b-88f8-d13df361db0e"
+version = "0.1.0"
 
 [[deps.Missings]]
 deps = ["DataAPI"]

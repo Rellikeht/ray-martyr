@@ -1,10 +1,10 @@
-using March, Objects, Vectors
+using March, Meshes, Objects, Vectors
 import CairoMakie: RGBf
 cam = Camera()
 
 solids = [
     Solid(Sphere(Vect(2.5, 1, -1), 1.5), Material(0.1, 1.0, 0.7)),
-    Solid(Cube(Vect(2, -2, 4.5), 2.0), Material(0.0, 0.6, 1.0)),
+    Solid(Box(Vect(2, -2, 4.5), 2.0), Material(0.0, 0.6, 1.0)),
 ]
 scene = Scene(
     cam,

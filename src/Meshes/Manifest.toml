@@ -1,0 +1,10 @@
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.10.5"
+manifest_format = "2.0"
+project_hash = "c2acd247a7aba2751870c60177c447cb17507578"
+
+[[deps.Vectors]]
+path = "../Vectors"
+uuid = "3cde98ac-47c7-4389-9f21-dc41dd2cbfe5"
+version = "0.1.0"

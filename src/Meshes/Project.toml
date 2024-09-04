@@ -1,0 +1,7 @@
+name = "Meshes"
+uuid = "394f185c-2c5c-4b8b-88f8-d13df361db0e"
+authors = ["Rellikeht <michaelhemperek@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Vectors = "3cde98ac-47c7-4389-9f21-dc41dd2cbfe5"

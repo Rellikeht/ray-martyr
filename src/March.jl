@@ -1,4 +1,7 @@
 module March
+
+# import-export {{{
+
 using Lights
 export FHD, HD, QHD, K4
 export initMscene, render!
@@ -6,7 +9,15 @@ export initMscene, render!
 using CairoMakie
 CairoMakie.activate!()
 import Lights: Scene, Camera
-import Objects: Sphere, Box
+import Meshes: Sphere, Box
+
+# Scene from GLMakie refuses to work
+# using GLMakie
+# GLMakie.activate!()
+
+#= }}}=#
+
+# consts {{{
 
 const K4 = (3840, 2160)
 const QHD = (2560, 1440)
@@ -14,11 +25,9 @@ const FHD = (1920, 1080)
 const HD = (1280, 720)
 const SD = (640, 480)
 
-# Scene from GLMakie refuses to work
-# using GLMakie
-# GLMakie.activate!()
+#= }}}=#
 
-function initMscene(
+function initMscene(#= {{{=#
     size::Tuple{Int,Int}=SD,
     background::Union{String,Symbol}=:black
 )::Makie.Scene
@@ -31,9 +40,9 @@ function initMscene(
     # scale!(scene, 1)
     Makie.campixel!(scene)
     return scene
-end
+end#= }}}=#
 
-function render!(
+function render!( #= {{{=#
     mscene::Makie.Scene,
     scene::Scene;
     reflection_limit::Int=DEFAULT_REFLECTION_LIMIT,
@@ -49,9 +58,9 @@ function render!(
             reflection_limit=reflection_limit
         )
     )
-end
+end#= }}}=#
 
-let
+let # precompilation {{{
     using Objects, Vectors
     precs = initMscene((20, 10))
 
@@ -69,6 +78,6 @@ let
     )
 
     render!(precs, pscene)
-end
+end #= }}}=#
 
 end
