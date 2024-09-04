@@ -1,7 +1,6 @@
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
-GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 Lights = "546eee7c-2c3e-4cfe-8eb7-68318552c85b"
 Objects = "62ecdadc-e19b-4eca-b0de-2efed354d683"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
